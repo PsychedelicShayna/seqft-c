@@ -142,29 +142,31 @@ int main() {
 
     Stack_Push(test, &x);
     printf("Pushed: %d\n", *(uint32_t*)Stack_Head(test));
-
-    // Stack_Print(test);
+    Stack_Print(test);
 
     x = 21;
     Stack_Push(test, &x);
     printf("Pushed: %d\n", *(uint32_t*)Stack_Head(test));
 
+    Stack_Print(test);
+
     x = 24;
     Stack_Push(test, &x);
     printf("Pushed: %d\n", *(uint32_t*)Stack_Head(test));
 
-    // Stack_Print(test);
+    Stack_Print(test);
 
     uint32_t* y = (uint32_t*)Stack_Pop(test);
     printf("Popped: %d\n", *y);
 
-    // Stack_Print(test);
+    Stack_Print(test);
     y = (uint32_t*)Stack_Pop(test);
     printf("Popped: %d\n", *y);
+    Stack_Print(test);
 
-    // Stack_Print(test);
+    // // Stack_Print(test);
     y = (uint32_t*)Stack_Pop(test);
     printf("Popped: %d\n", *y);
-    // Stack_Print(test);
+    Stack_Print(test);
 
 }

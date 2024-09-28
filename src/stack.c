@@ -16,31 +16,31 @@ Stack* Stack_New(size_t item_size) {
 }
 
 Stack* Stack_WithCapacity(size_t item_size, size_t amount) {
-  Stack* s = Stack_New(item_size);
-  size_t bytes_required = item_size * amount;
-  s->base = malloc(bytes_required);
-  s->capacity = bytes_required;
-  return s;
+    Stack* s              = Stack_New(item_size);
+    size_t bytes_required = item_size * amount;
+    s->base               = malloc(bytes_required);
+    s->capacity           = bytes_required;
+    return s;
 }
 
 void Stack_Free(Stack* s) {
-    if(s && s->base) free(s->base);
-    if(s) free(s);
+    if(s && s->base)
+        free(s->base);
+    if(s)
+        free(s);
 }
 
 void* Stack_Head(Stack* s) {
-  void* head = s->base;
+    if(!s->count) return s->base;
 
-  if(s->count >= 1) {
-    head += (s->count * s->item_size);
-  }
+    void* head = s->base + ((s->count - 1) * s->item_size);
 
-  return head;
+    return head;
 }
 
-/// The amount is the amount of additional *items* the stack stack should have
-/// enough space to store. The new base pointer of the stack is returned.
-/// 0 will not result in a reallocation and return the existing base.
+// The amount is the amount of additional *items* the stack stack should have
+// enough space to store. The new base pointer of the stack is returned.
+// 0 will not result in a reallocation and return the existing base.
 void* Stack_ExpandBy(Stack* s, size_t amount) {
     if(!amount)
         return s->base;
@@ -62,15 +62,19 @@ void Stack_Push(Stack* s, void* item) {
         Stack_ExpandBy(s, 1);
     }
 
-    void* dest = Stack_Head(s) + s->item_size;
+    void* dest = s->base + (s->item_size * s->count);
+    // void* dest          = Stack_Head(s) + s->item_size;
     memcpy(dest, item, s->item_size);
 
     s->count += 1;
 }
 
 // Reduces the item count by 1, and returns a copy of the element previously
-// at the head of the stack.
+// at the head of the stack. If the item count is 0, return 0.
 void* Stack_Pop(Stack* s) {
+    if(s->count == 0)
+        return 0;
+
     void* item_copy = malloc(s->item_size);
     void* head      = Stack_Head(s);
 
@@ -91,12 +95,12 @@ void Stack_Print(Stack* s) {
     for(int i = 0; i < s->count; ++i) {
         void* item_location = s->base + (s->item_size * i);
 
-        printf("%d: ", i);
+        printf("%d: |", i);
 
         // Print item_size number of bytes in hex for each item.
         for(int b = 0; b < s->item_size; ++b) {
             char* byte = item_location + b;
-            printf("%02x", *(unsigned*)byte);
+            printf("%02x|", *byte);
         }
 
         printf("\n");
