@@ -23,11 +23,10 @@ Stack* Stack_new(size_t item_size) {
 }
 
 Stack* Stack_withCapacity(size_t item_size, size_t amount) {
-    Stack* s              = Stack_new(item_size);
-    size_t bytes_required = item_size * amount;
-    s->base               = malloc(bytes_required);
-    s->head               = s->base;
-    s->capacity           = bytes_required;
+    Stack* s    = Stack_new(item_size);
+    s->capacity = item_size * amount;
+    s->base     = malloc(s->capacity);
+    s->head     = s->base;
     return s;
 }
 
@@ -60,8 +59,8 @@ Stack* Stack_expandBy(Stack* s, size_t amount) {
 }
 
 Stack* Stack_shrinkToFit(Stack* s) {
-  Stack_expandBy(s, 0);
-  return s;
+    Stack_expandBy(s, 0);
+    return s;
 }
 
 Stack* Stack_pushFrom(Stack* s, void* item) {
@@ -92,6 +91,20 @@ void* Stack_pop(Stack* s) {
     return item_copy;
 }
 
+Stack* Stack_clear(Stack* s) {
+    if(!s || !s->capacity)
+        return 0;
+
+    if(s->base)
+        free(s->base);
+
+    s->base  = malloc(s->capacity);
+    s->head  = s->base;
+    s->count = 0;
+
+    return s;
+}
+
 Stack* Stack_print(Stack* s) {
     printf(" | Item Count: %zu | Item Size: %zu | Capacity: %zu |  \n",
            s->count,
@@ -118,22 +131,32 @@ Stack* Stack_print(Stack* s) {
     return s;
 }
 
-void* Stack_getBase(Stack* s) {
+size_t Stack_cloneData(Stack* s, void** dest) {
+    size_t size = s->count * s->item_size;
+
+    void* clone = malloc(size);
+    memcpy(clone, s->base, size);
+
+    *dest = clone;
+    return size;
+}
+
+inline void* Stack_getBase(Stack* s) {
     return s->base;
 }
 
-void* Stack_getHead(Stack* s) {
+inline void* Stack_getHead(Stack* s) {
     return s->head;
 }
 
-size_t Stack_getCount(Stack* s) {
+inline size_t Stack_getCount(Stack* s) {
     return s->count;
 }
 
-size_t Stack_getItemSize(Stack* s) {
+inline size_t Stack_getItemSize(Stack* s) {
     return s->item_size;
 }
 
-size_t Stack_getCapacity(Stack* s) {
+inline size_t Stack_getCapacity(Stack* s) {
     return s->capacity;
 }
