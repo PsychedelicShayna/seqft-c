@@ -1,7 +1,5 @@
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 typedef struct {
     void* base; // The most important pointer. The base of the stack.

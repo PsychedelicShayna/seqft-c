@@ -1,3 +1,6 @@
+#include <stdlib.h>
+#include <string.h>
+
 #include "stack.h"
 
 Stack* Stack_New(size_t item_size) {
