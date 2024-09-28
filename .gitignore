@@ -1,0 +1,6 @@
+.gdb*
+.cache
+out
+*.tmp
+compile_commands.json
+
