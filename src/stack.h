@@ -1,29 +1,38 @@
+#ifndef _H_STACK
+#define _H_STACK
+
 #include <stdint.h>
 #include <stdio.h>
 
-typedef struct {
-    void* base; // The most important pointer. The base of the stack.
-                // This is where the memory allocated with malloc is.
-                // All elements pushed to the stack can be found by
-                // bottom + (item_size * item_index). The top of the
-                // stack (very last element) can be calculated with
-                // bottom + (item_size * item_count).
+typedef struct Stack Stack;
 
-    size_t count; // How many items have been pushed onto the stack.
+// Initialization.
+// ----------------------------------------------------------------------------
+extern Stack* Stack_new(size_t item_size);
+extern Stack* Stack_withCapacity(size_t item_size, size_t count);
+extern void   Stack_free(Stack* s);
 
-    size_t item_size; // How many bytes does each item occupy.
-    size_t capacity;  // How many bytes are available past the base.
+// Resizing.
+// ----------------------------------------------------------------------------
+extern Stack* Stack_expandBy(Stack* s, size_t amount);
+extern Stack* Stack_shrinkToFit(Stack* s);
 
-    size_t _expand_by; // When auto-expanding, how many new elements should be
-                       // available? This number gets doubled per auto-expand.
-} Stack;
+// Mutating.
+// ----------------------------------------------------------------------------
+#define Stack_push(s, v) Stack_pushFrom(s, &(typeof(v)) {v});
+extern Stack* Stack_pushFrom(Stack* s, void* item);
+extern void*  Stack_pop(Stack* s);
 
-extern Stack* Stack_New(size_t item_size);
-extern Stack* Stack_WithCapacity(size_t item_size, size_t count);
-extern void   Stack_Free(Stack* s);
-extern void*  Stack_Head(Stack* s);
-extern void*  Stack_ExpandBy(Stack* s, size_t amount);
-extern void   Stack_Push(Stack* s, void* item);
-extern void*  Stack_Pop(Stack* s);
-extern void   Stack_Print(Stack* s);
+// Getters.
+// ----------------------------------------------------------------------------
+extern void*  Stack_getBase(Stack* s);
+extern void*  Stack_getHead(Stack* s);
+extern size_t Stack_getCount(Stack* s);
+extern size_t Stack_getItemSize(Stack* s);
+extern size_t Stack_getCapacity(Stack* s);
 
+// Debug.
+// ----------------------------------------------------------------------------
+extern Stack* Stack_print(Stack* s);
+
+#endif // _H_STACK

@@ -131,42 +131,40 @@ Token* tokenize(const char* expr, size_t len) {
             switch(c) {}
         }
     }
+
+    return 0;
 }
 
 int main() {
-    Stack* test = Stack_WithCapacity(sizeof(uint32_t), 20);
+    Stack* s = Stack_withCapacity(4, 100);
+    Stack_print(s);
 
-    // Stack_Print(test);
+    Stack_shrinkToFit(s);
+    
+    Stack_push(s, 10);
+    printf("Pushed: %d\n", *(uint32_t*)Stack_getHead(s));
+    Stack_print(s);
 
-    uint32_t x = 10;
+    Stack_push(s, 21);
+    printf("Pushed: %d\n", *(uint32_t*)Stack_getHead(s));
+    Stack_print(s);
 
-    Stack_Push(test, &x);
-    printf("Pushed: %d\n", *(uint32_t*)Stack_Head(test));
-    Stack_Print(test);
+    Stack_push(s, 24);
+    printf("Pushed: %d\n", *(uint32_t*)Stack_getHead(s));
+    Stack_print(s);
 
-    x = 21;
-    Stack_Push(test, &x);
-    printf("Pushed: %d\n", *(uint32_t*)Stack_Head(test));
 
-    Stack_Print(test);
+    uint32_t* y = 0;
 
-    x = 24;
-    Stack_Push(test, &x);
-    printf("Pushed: %d\n", *(uint32_t*)Stack_Head(test));
-
-    Stack_Print(test);
-
-    uint32_t* y = (uint32_t*)Stack_Pop(test);
+    y = Stack_pop(s);
     printf("Popped: %d\n", *y);
+    Stack_print(s);
 
-    Stack_Print(test);
-    y = (uint32_t*)Stack_Pop(test);
+    y = Stack_pop(s);
     printf("Popped: %d\n", *y);
-    Stack_Print(test);
+    Stack_print(s);
 
-    // // Stack_Print(test);
-    y = (uint32_t*)Stack_Pop(test);
+    y = Stack_pop(s);
     printf("Popped: %d\n", *y);
-    Stack_Print(test);
-
+    Stack_print(s);
 }
