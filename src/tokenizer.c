@@ -521,20 +521,41 @@ void Tokenizer_error(Tokenizer* t, const char* message, size_t expr_index) {
 void Tokenizer_parseAccNum(Tokenizer* t) {
     Token token = {.type = TT_NUM, .f64 = 0, .func = 0};
 
-    char buffer[Stack_getCount(t->stacc) + 1];
-    memset(buffer, 0, Stack_getCount(t->stacc) + 1);
-    memcpy(buffer, Stack_getBase(t->stacc), Stack_getCount(t->stacc));
+    char*  base_ptr = Stack_getBase(t->stacc);
+    size_t count    = Stack_getCount(t->stacc);
+
+    char buffer[count + 1]; // Nullbyte
+    memset(buffer, 0, count + 1);
+
+    char*  begin        = base_ptr;
+    size_t len          = count;
+    int    strtoll_base = 10;
+
+    // We want to ignore the 0x, 0b, 0o prefixes for hex, bin, and oct, and
+    // make sure that count > 2 or else the number is incomplete.
+    if(t->accfl & (ACC_HEX | ACC_BIN | ACC_OCT) && count > 2) {
+        // Futureproof against me adding any control bits in the future by
+        // filtering out anything that isn't ACC_HEX, ACC_BIN, or ACC_OCT.
+
+        strtoll_base =
+            t->accfl & (~(t->accfl & ~(ACC_HEX | ACC_OCT | ACC_BIN)));
+
+        begin += 2;
+        len -= 2;
+    } else if(count <= 2) {
+        Tokenizer_error(
+            t,
+            "Not enough digits to make a number of a different base.",
+            count);
+        return;
+    }
+
+    memcpy(buffer, begin, len);
 
     if(t->accfl & ACC_FPN) {
         token.f64 = atof(buffer);
     } else {
-        int base = 10;
-
-        if(t->accfl & (ACC_HEX | ACC_BIN | ACC_OCT)) {
-            base = (int)t->accfl;
-        }
-
-        token.f64 = strtoll(buffer, 0, base);
+        token.f64 = strtoll(buffer, 0, strtoll_base);
     }
 
     Tokenizer_addToken(t, &token);
