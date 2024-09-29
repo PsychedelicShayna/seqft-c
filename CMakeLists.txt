@@ -6,13 +6,15 @@ project(seqft) # Fill in the project name.
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -O0")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3")
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
-
 set(CMAKE_C_STANDARD 11)
 
 add_executable(${PROJECT_NAME}
   src/main.c
   src/stack.c
   src/stack.h
+  src/tokenizer.c
+  src/tokenizer.h
+  src/common.h
 )
 
 ## Libraries to be statically linked with executable.  
