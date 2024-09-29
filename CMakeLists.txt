@@ -15,6 +15,7 @@ add_executable(${PROJECT_NAME}
   src/tokenizer.c
   src/tokenizer.h
   src/common.h
+  src/common.c
 )
 
 ## Libraries to be statically linked with executable.  

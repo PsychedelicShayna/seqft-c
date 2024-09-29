@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "common.h"
+
 typedef struct Stack Stack;
 
 // Initialization.
@@ -26,7 +28,14 @@ extern Stack* Stack_clear(Stack* s);
 
 // Retrieval.
 // ----------------------------------------------------------------------------
+
+// Memcpy's all the elements stored in the stack to a newlly allocated void*,
+// and writes the void* to the dest void**, and returns the number of elements.
 extern size_t Stack_cloneData(Stack* s, void** dest);
+
+extern bool   Stack_empty(Stack* s);
+extern void*  Stack_first(Stack* s);
+extern void*  Stack_last(Stack* s);
 
 // Getters.
 // ----------------------------------------------------------------------------

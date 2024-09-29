@@ -106,7 +106,7 @@ Stack* Stack_clear(Stack* s) {
 }
 
 Stack* Stack_print(Stack* s) {
-    printf(" | Item Count: %zu | Item Size: %zu | Capacity: %zu |  \n",
+    printf("| Item Count: %zu | Item Size: %zu | Capacity: %zu | \n",
            s->count,
            s->item_size,
            s->capacity);
@@ -127,7 +127,7 @@ Stack* Stack_print(Stack* s) {
         printf("\n");
     }
 
-    printf("--------------------------------------------------------------\n");
+    printf("\n\n");
     return s;
 }
 
@@ -138,7 +138,23 @@ size_t Stack_cloneData(Stack* s, void** dest) {
     memcpy(clone, s->base, size);
 
     *dest = clone;
-    return size;
+    return s->count;
+}
+
+bool Stack_empty(Stack* s) {
+    return s->count == 0;
+}
+
+void* Stack_first(Stack* s) {
+    if(s->count == 0)
+        return 0;
+    return s->base;
+}
+
+void* Stack_last(Stack* s) {
+    if(s->count == 0)
+        return 0;
+    return s->head;
 }
 
 inline void* Stack_getBase(Stack* s) {
