@@ -14,34 +14,35 @@ void test_stack() {
     Stack_shrinkToFit(s);
 
     Stack_push(s, 10);
-    printf("Pushed: %d\n", *(uint32_t*)Stack_getHead(s));
+    //    printf("Pushed: %d\n", *(uint32_t*)Stack_getHead(s));
     Stack_print(s);
 
     Stack_push(s, 21);
-    printf("Pushed: %d\n", *(uint32_t*)Stack_getHead(s));
+    //    printf("Pushed: %d\n", *(uint32_t*)Stack_getHead(s));
     Stack_print(s);
 
     Stack_push(s, 24);
-    printf("Pushed: %d\n", *(uint32_t*)Stack_getHead(s));
+    //    printf("Pushed: %d\n", *(uint32_t*)Stack_getHead(s));
     Stack_print(s);
 
-    uint32_t* y = 0;
+    uint32_t  _y = 0;
+    uint32_t* y  = &_y;
 
-    y = Stack_pop(s);
-    printf("Popped: %d\n", *y);
     Stack_print(s);
+    Stack_rePop(s, &_y);
+    //    printf("Popped: %d\n", *y);
 
-    y = Stack_pop(s);
-    printf("Popped: %d\n", *y);
     Stack_print(s);
+    Stack_rePop(s, &_y);
+    //    printf("Popped: %d\n", *y);
 
-    y = Stack_pop(s);
-    printf("Popped: %d\n", *y);
     Stack_print(s);
+    Stack_rePop(s, &_y);
+    //    printf("Popped: %d\n", *y);
 }
 
 char* read_input() {
-    char*  buffer = malloc(1);
+    char*  buffer = xmalloc(1);
     size_t size   = 0;
     size_t len    = 0;
     int    c;
@@ -69,60 +70,85 @@ void test_tokenizer(const char* expr) {
         Tokenizer_free(t);
         return;
     }
-    TokenizeResult* tr = Tokenizer_parse(t, expr, len);
+
+    TokenArray* tr = Tokenizer_parse(t, expr, len);
+
     // Stack* ts = t->tokens;
 
     if(tr) {
-        for(int i = 0; i < tr->token_count; ++i) {
+        for(int i = 0; i < tr->count; ++i) {
             Token* t = &tr->tokens[i];
             Token_print(t);
         }
-    } else {
-        printf("Failed to tokenize.\n");
 
+        TokenArray_freeMembers(tr);
+        free(tr);
+    }
 
+    if(t->error) {
+        //        printf("Failed to tokenize.\n");
 
-        if(t->error) {
-            printf("error(i=%zu): %s\n---------------------------------\n",
-                   t->error->index,
-                   t->error->message);
+        //        printf("error(i=%zu):
+        //        %s\n---------------------------------\n",
+        // t->error->index,
+        // t->error->message);
 
-            char* exprnw = filter_whitespace(expr, len);
-            printf(">           %s\n", exprnw);
-            free(exprnw);
+        char* exprnw = filter_whitespace(expr, len);
+        //        printf(">           %s\n", exprnw);
+        free(exprnw);
 
-            for(size_t i = 0; i < len+12; ++i) {
-                if(i == t->error->index+12) {
-                    printf("^");
-                    break;
-                } else {
-                    printf(" ");
-                }
+        for(size_t i = 0; i < len + 12; ++i) {
+            if(i == t->error->index + 12) {
+                //                printf("^");
+                break;
+            } else {
+                //                printf(" ");
             }
-            printf("\n");
-
-            for(size_t i = 0; i < len+12; ++i) {
-                if(i == t->error->index+12) {
-                    printf("|");
-                    break;
-                } else {
-                    printf(".");
-                }
-            }
-
-            printf("\n\n");
         }
+        //        printf("\n");
+
+        for(size_t i = 0; i < len + 12; ++i) {
+            if(i == t->error->index + 12) {
+                //                printf("|");
+                break;
+            } else {
+                //                printf(".");
+            }
+        }
+
+        //        printf("\n\n");
     }
 
     Tokenizer_free(t);
 }
 
 int main() {
+    // test_stack();
 
-    while(true) {
-        printf("Enter Expression: ");
-        char* expr = read_input();
-
-        test_tokenizer(expr);
+    for(int i=0;i<100000000;++i) {
+        test_tokenizer("1+1+1");
+        test_tokenizer("1+1+1");
+        test_tokenizer("0x10230");
+        test_tokenizer("0x20f");
+        test_tokenizer("0xz012");
+        test_tokenizer("1*2+func(213)/0b123");
+        test_tokenizer("10");
+        test_tokenizer("10");
+        test_tokenizer("10");
+        test_tokenizer("213");
+        test_tokenizer("1232^123");
+        test_tokenizer("19");
+        test_tokenizer("");
+        test_tokenizer("");
+        test_tokenizer("");
+        test_tokenizer("         ");
+        test_tokenizer("");
     }
+
+    // while(TRUE) {
+    //    //     printf("Enter Expression: ");
+    //     char* expr = read_input();
+    //
+    //     test_tokenizer(expr);
+    // }
 }

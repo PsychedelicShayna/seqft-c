@@ -1,4 +1,28 @@
 #include "common.h"
+#include <stdio.h>
+
+// A wrapper to malloc that aborts the program immediately if malloc fails.
+void* xmalloc(size_t size) {
+  void* ptr = malloc(size);
+
+  if(!ptr) {
+    perror("Failed to malloc; out of memory.");
+    abort();
+  }
+  return ptr;
+}
+
+// A wrapper to realloc that aborts the program immediately if realloc fails.
+void* xrealloc(void* memory, size_t size) {
+  void* ptr = realloc(memory, size);
+
+  if(!ptr && size != 0) {
+    perror("Failed to realloc; out of memory.");
+    abort();
+  }
+
+  return ptr;
+}
 
 char* filter_whitespace(const char* input, size_t len) {
     char finput[len + 1];
@@ -13,9 +37,11 @@ char* filter_whitespace(const char* input, size_t len) {
 
     size_t flen = strlen(finput);
 
-    char* result = (char*)malloc(flen);
+    char* result = (char*)csrxmalloc(flen+1);
     memset(result, 0, flen+1);
-    memcpy(result, finput, flen+1);
+    memcpy(result, finput, flen);
 
     return result;
 }
+
+

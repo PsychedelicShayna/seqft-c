@@ -4,6 +4,31 @@
 #include "stack.h"
 #include <stdio.h>
 
+// The three things preventing us from simply making a lookup table is
+//
+//  - Number accumulation.
+//  - Number base determination.
+//  - Function name accumulation & association with ( left parenthesis.
+//    * In the future, functions with multiple arguments.
+//
+//  The state of the accumulator has to be checked for every charater in the
+//  expression to ensure the character is compliant with the rules of what is
+//  being accumulated, if something is being accumulated.
+//
+//  Something is accumulated if a number or a latter is detected. Operators
+//  are single characters. We want to check operators first, since they will
+//  always cause the accumulator to be cleared, and a token to be added to the
+//  token stack, and in the case of left paren (, we can retrieve the function
+//  name from the accumulator before we clear it.
+//
+//  After the operator check, we do our accumulator checks, and ensure that
+//  the current character is compliant with the rules of the accumulation.
+//
+//  What is being accumulated is determined by AccFlag (accfl), and the rules
+//  depend on the value of accfl. The initial state of accfl is NIL, but as
+//  we iterate through the expression, its value will be determined, and we
+//  must follow the rules.
+
 typedef enum {
     TT_NUM = 0x00000001,
     TT_ADD = 0x00000002, //: +
@@ -43,8 +68,17 @@ typedef enum {
 
 typedef struct {
     Token* tokens;
-    size_t token_count;
-} TokenizeResult;
+    size_t count;
+} TokenArray;
+
+
+extern void Token_print(Token* t);
+
+extern void Token_freeMembers(Token* t);
+extern void Token_free(Token* t);
+
+extern void TokenArray_freeMembers(TokenArray* t);
+extern void TokenArray_free(TokenArray* t);
 
 typedef struct Tokenizer {
     TokenType tt_map[256];
@@ -54,13 +88,15 @@ typedef struct Tokenizer {
     IterErr*  error;
 } Tokenizer;
 
-extern void  Token_print(Token* t);
+// Returns a newly allocated string representing the token. Caller responsible
+// for freeing char* returned from this function.
 extern char* TokenType_toString(TokenType t);
 
 extern Tokenizer*      Tokenizer_new();
-extern TokenizeResult* Tokenizer_parse(Tokenizer*  t,
+extern TokenArray* Tokenizer_parse(Tokenizer*  t,
                                        const char* cexpr,
                                        size_t      expr_len);
+extern BOOL            Tokenizer_parseAccNum(Tokenizer* t);
 extern void            Tokenizer_error(Tokenizer*  t,
                                        const char* message,
                                        size_t      expr_index);
