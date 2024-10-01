@@ -75,7 +75,6 @@
  *
  *         - Always: add the token for the operator, if it's a valid operator.
  * */
-// Let's convert this mess into a struct with state.
 
 void Token_print(Token* t) {
     char* b = TokenType_toString(t->type);
@@ -208,11 +207,13 @@ void Tokenizer_addToken(Tokenizer* t, Token* token) {
     Stack_clear(t->stacc);
 
 #ifdef DEBUG
-    char* token_str = TokenType_toString(token->type);
+    {
+        char* token_str = TokenType_toString(token->type);
 
-    if(token_str) {
-        // printf("Added token to stack %s\n", token_str);
-        free(token_str);
+        if(token_str) {
+            printf("Added token to stack %s\n", token_str);
+            free(token_str);
+        }
     }
 #endif
 
@@ -271,8 +272,7 @@ BOOL Tokenizer_parseAccNum(Tokenizer* t) {
 
     if(custom_base || is_float) {
         if(count < 3) {
-            Tokenizer_error(
-                t, "Incomplete number.", count);
+            Tokenizer_error(t, "Incomplete number.", count);
 
             return TRUE;
         }
@@ -303,17 +303,15 @@ TokenArray* Tokenizer_parse(Tokenizer* t, const char* cexpr, size_t expr_len) {
     expr_len = filter_whitespace(cexpr, expr_len, expr);
 
     if(!expr_len) {
-      perror("Could not filter whitespace from expression!\n");
-      abort();
+        perror("Could not filter whitespace from expression!\n");
+        abort();
     }
 
-#ifdef DEBUG
-    printf("Stripped Expression: '%s'(%zu). Originally '%s'(%zu)\n",
-           expr,
-           expr_len,
-           cexpr,
-           strlen(cexpr));
-#endif
+    printdbg("Stripped Expression: '%s'(%zu). Originally '%s'(%zu)\n",
+             expr,
+             expr_len,
+             cexpr,
+             strlen(cexpr));
 
     for(int i = 0; i < expr_len; ++i) {
         char c = expr[i];
@@ -391,7 +389,7 @@ TokenArray* Tokenizer_parse(Tokenizer* t, const char* cexpr, size_t expr_len) {
                 }
             } else if((t->accfl & ACC_DEC) && c == '.') {
                 t->accfl = ACC_FPN;
-            } 
+            }
 
             // Otherwise, check if the character is valid for the number type.
             else if(!valid_for_base(c, t->accfl)) {
@@ -409,8 +407,8 @@ TokenArray* Tokenizer_parse(Tokenizer* t, const char* cexpr, size_t expr_len) {
             }
 
             Stack_pushFrom(t->stacc, &c);
-        } 
-        
+        }
+
         // If it's not an operator, letter, digit, the expression is invalid.
         // --------------------------------------------------------------------
         else {
@@ -466,9 +464,6 @@ TokenArray* Tokenizer_parse(Tokenizer* t, const char* cexpr, size_t expr_len) {
 
     Stack_reClear(t->tokens);
     Stack_reClear(t->stacc);
-
-    // tokens->token_count    = Stack_cloneData(t->tokens,
-    // (void*)&tokens->tokens);
 
     return tkr;
 }

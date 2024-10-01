@@ -1,6 +1,12 @@
 #include "common.h"
 #include <stdio.h>
 
+#ifdef DEBUG
+    #define dprintf(s, ...) printf(s, ...)
+#else
+    #define dprintf(v, ...) 
+#endif
+
 // A wrapper to malloc that aborts the program immediately if malloc fails.
 void* xmalloc(size_t size) {
     void* ptr = malloc(size);

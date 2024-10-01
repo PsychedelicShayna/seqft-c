@@ -17,6 +17,12 @@
 #define FALSE 0 
 #endif
 
+#ifdef DEBUG
+    #define printdbg(...) printf(__VA_ARGS__)
+#else
+    #define printdbg(...) 
+#endif
+
 // Represents any non-recoverable error that can occur during iteration.
 typedef struct IterErr {
     const char* message;

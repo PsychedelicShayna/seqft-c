@@ -14,15 +14,15 @@ void test_stack() {
     Stack_shrinkToFit(s);
 
     Stack_push(s, 10);
-    //    printf("Pushed: %d\n", *(uint32_t*)Stack_getHead(s));
+    printdbg("Pushed: %d\n", *((uint32_t*)Stack_getHead(s)));
     Stack_print(s);
 
     Stack_push(s, 21);
-    //    printf("Pushed: %d\n", *(uint32_t*)Stack_getHead(s));
+    printdbg("Pushed: %d\n", *(uint32_t*)Stack_getHead(s));
     Stack_print(s);
 
     Stack_push(s, 24);
-    //    printf("Pushed: %d\n", *(uint32_t*)Stack_getHead(s));
+    printdbg("Pushed: %d\n", *(uint32_t*)Stack_getHead(s));
     Stack_print(s);
 
     uint32_t  _y = 0;
@@ -30,15 +30,15 @@ void test_stack() {
 
     Stack_print(s);
     Stack_rePop(s, &_y);
-    //    printf("Popped: %d\n", *y);
+    printdbg("Popped: %d\n", *y);
 
     Stack_print(s);
     Stack_rePop(s, &_y);
-    //    printf("Popped: %d\n", *y);
+    printdbg("Popped: %d\n", *y);
 
     Stack_print(s);
     Stack_rePop(s, &_y);
-    //    printf("Popped: %d\n", *y);
+    printdbg("Popped: %d\n", *y);
 }
 
 void highlight_error(const char* expr,
