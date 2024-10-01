@@ -104,6 +104,13 @@ void TokenArray_freeMembers(TokenArray* t) {
     }
 }
 
+void TokenArray_free(TokenArray* t) {
+    if(t) {
+        TokenArray_freeMembers(t);
+        free(t);
+    }
+}
+
 BOOL valid_for_base(char c, AccFlag base) {
     switch(base) {
         case ACC_HEX:

@@ -23,7 +23,7 @@ typedef struct Stack {
 } Stack;
 
 // ---------------------------------------------------------------------------- 
-
+//
 Stack* Stack_new(size_t item_size) {
     Stack* s = (Stack*)xmalloc(sizeof(Stack));
     memset(s, 0, sizeof(Stack));
@@ -180,8 +180,7 @@ void Stack_clear(Stack* s) {
 // This will pass the items on the stack through the custom deallocator if it
 // was provided, and reallocate the stack to size specified by efault_alloc
 // field, if set. If not, defaults to STACK_DEFAULT_ALLOC global macro (4096).
-void Stack_reClear(Stack* s) {
-    if(!s || !s->base)
+void Stack_reClear(Stack* s) { if(!s || !s->base)
         return;
 
     if(s->deallocator) {

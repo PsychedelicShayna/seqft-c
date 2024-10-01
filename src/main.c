@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "common.h"
+#include "evaluator.h"
 #include "stack.h"
 #include "tokenizer.h"
 
@@ -52,7 +53,7 @@ void highlight_error(const char* expr,
     filter_whitespace(expr, expr_len, stripped);
 
     const size_t bufsize = indent + expr_len + strlen(error.message) + 1;
-    char padding[bufsize];
+    char         padding[bufsize];
     memset(padding, 0, bufsize);
 
     memset(padding, ' ', indent);
@@ -68,6 +69,54 @@ void highlight_error(const char* expr,
     memset(padding, 0, bufsize);
 
     printf("\n\n");
+}
+
+void test_sft(const char* expr) {
+    Tokenizer* t   = Tokenizer_new();
+    Sft*       sft = Sft_new();
+
+    size_t expr_len = strlen(expr);
+
+    if(!expr_len) {
+        Tokenizer_free(t);
+        return;
+    }
+
+    TokenArray* token_array = Tokenizer_parse(t, expr, expr_len);
+
+#ifdef DEBUG
+    // if(token_array) {
+    //
+    //     for(int i = 0; i < token_array->count; ++i) {
+    //         Token* t = &token_array->tokens[i];
+    //         Token_print(t);
+    //     }
+    //
+    //     // TokenArray_freeMembers(token_array);
+    //     // free(token_array);
+    // }
+#endif
+
+    if(t->error) {
+        highlight_error(expr, expr_len, *t->error, 2);
+        TokenArray_free(token_array);
+        Tokenizer_free(t);
+        return;
+    }
+
+    if(token_array) {
+        double result = 0;
+
+        if(Sft_evalTokens(sft, token_array, &result)) {
+            perror("Failed to evaluate tokens!");
+            return;
+        }
+
+        printf("Result: %f\n", result);
+    }
+
+    TokenArray_free(token_array);
+    Tokenizer_free(t);
 }
 
 void test_tokenizer(const char* expr) {
@@ -127,6 +176,6 @@ int main() {
 
     while(TRUE) {
         char* expr = read_input("Enter Expression: ");
-        test_tokenizer(expr);
+        test_sft(expr);
     }
 }

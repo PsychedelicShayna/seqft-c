@@ -16,11 +16,14 @@ add_executable(${PROJECT_NAME}
   src/tokenizer.h
   src/common.h
   src/common.c
+  src/evaluator.c
+  src/evaluator.h
 )
 
-## Libraries to be statically linked with executable.  
-# target_link_libraries(${PROJECT_NAME}
-# )
+# Libraries to be statically linked with executable.  
+target_link_libraries(${PROJECT_NAME}
+  m
+)
 
 ## Additional library search directories.
 # target_link_directories(${PROJECT_NAME}

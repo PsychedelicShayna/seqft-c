@@ -37,11 +37,13 @@ typedef enum {
     TT_MOD = 0x00000010, //: %
     TT_MUL = 0x00000020, //: *
     TT_POW = 0x00000040, //: ^
-    TT_NEG = 0x00000080, //: ~
-    TT_OPA = 0x00000100, //: (
-    TT_CPA = 0x00000200, //: )
+    TT_NEG = 0x00000080, //: ~  UNARY
+    TT_OPA = 0x00100000, //: (
+    TT_CPA = 0x00200000, //: )
     TT_NIL = 0xFFFFFFFF,
-    TT_OPS = TT_ADD | TT_SUB | TT_DIV | TT_MOD | TT_MUL | TT_POW | TT_NEG,
+    TT_UOP = TT_NEG,
+    TT_BOP = TT_ADD | TT_SUB | TT_DIV | TT_MOD | TT_MUL | TT_POW,
+    TT_OPS = TT_UOP | TT_BOP,
     TT_PAS = TT_OPA | TT_CPA,
 } TokenType;
 
@@ -71,7 +73,6 @@ typedef struct {
     size_t count;
 } TokenArray;
 
-
 extern void Token_print(Token* t);
 
 extern void Token_freeMembers(Token* t);
@@ -92,16 +93,16 @@ typedef struct Tokenizer {
 // for freeing char* returned from this function.
 extern char* TokenType_toString(TokenType t);
 
-extern Tokenizer*      Tokenizer_new();
+extern Tokenizer*  Tokenizer_new();
 extern TokenArray* Tokenizer_parse(Tokenizer*  t,
-                                       const char* cexpr,
-                                       size_t      expr_len);
-extern BOOL            Tokenizer_parseAccNum(Tokenizer* t);
-extern void            Tokenizer_error(Tokenizer*  t,
-                                       const char* message,
-                                       size_t      expr_index);
-extern void            Tokenizer_clear(Tokenizer* t);
-extern void            Tokenizer_addToken(Tokenizer* t, Token* token);
-extern void            Tokenizer_free(Tokenizer* t);
+                                   const char* cexpr,
+                                   size_t      expr_len);
+extern BOOL        Tokenizer_parseAccNum(Tokenizer* t);
+extern void        Tokenizer_error(Tokenizer*  t,
+                                   const char* message,
+                                   size_t      expr_index);
+extern void        Tokenizer_clear(Tokenizer* t);
+extern void        Tokenizer_addToken(Tokenizer* t, Token* token);
+extern void        Tokenizer_free(Tokenizer* t);
 
 #endif // _H_TOKENIZER_
