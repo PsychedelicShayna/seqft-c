@@ -10,11 +10,11 @@ typedef struct Stack Stack;
 
 #define STACK_DEFAULT_ALLOC 4096
 
-// Initialization.
-// ----------------------------------------------------------------------------
 extern Stack* Stack_new(size_t item_size);
 extern Stack* Stack_withCapacity(size_t item_size, size_t count);
 extern void   Stack_free(Stack* s);
+
+// ----------------------------------------------------------------------------
 
 // Custom deallocator for complex types to be able to deallocate their own
 // members if they manage memory. This deallocator should NEVER free the
@@ -25,13 +25,13 @@ extern void Stack_setDeallocator(Stack* s, void (*deallocator)(void* item));
 // Sets the default amount of bytes allocated by the stack to house items.
 extern void Stack_setDefaultAlloc(Stack* s, size_t size);
 
-// Resizing.
 // ----------------------------------------------------------------------------
+
 extern Stack* Stack_expandBy(Stack* s, size_t amount);
 extern Stack* Stack_shrinkToFit(Stack* s);
 
-// Mutating.
 // ----------------------------------------------------------------------------
+
 #define Stack_push(s, v) Stack_pushFrom(s, &(typeof(v)) {v});
 extern Stack* Stack_pushFrom(Stack* s, void* item);
 
@@ -59,7 +59,6 @@ extern void Stack_clear(Stack* s);
 // field, if set. If not, defaults to STACK_DEFAULT_ALLOC global macro (4096).
 extern void Stack_reClear(Stack* s);
 
-// Retrieval.
 // ----------------------------------------------------------------------------
 
 // Memcpy's all the elements stored in the stack to a newlly allocated void*,
@@ -67,13 +66,15 @@ extern void Stack_reClear(Stack* s);
 extern size_t Stack_cloneData(Stack* s, void** dest);
 extern Stack* Stack_deepClone(Stack* s, void(*item_cloner)(void* item, void* dest));
 
+// ----------------------------------------------------------------------------
+
 extern BOOL  Stack_empty(Stack* s);
 extern void* Stack_first(Stack* s);
 extern void* Stack_last(Stack* s);
 extern void* Stack_itemAt(Stack* s, size_t index);
 
-// Getters.
 // ----------------------------------------------------------------------------
+
 extern void*  Stack_getBase(Stack* s);
 extern void*  Stack_getHead(Stack* s);
 extern size_t Stack_getCount(Stack* s);

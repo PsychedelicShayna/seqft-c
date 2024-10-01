@@ -22,6 +22,8 @@ typedef struct Stack {
     void (*deallocator)(void* item);
 } Stack;
 
+// ---------------------------------------------------------------------------- 
+
 Stack* Stack_new(size_t item_size) {
     Stack* s = (Stack*)xmalloc(sizeof(Stack));
     memset(s, 0, sizeof(Stack));
@@ -64,9 +66,17 @@ void Stack_free(Stack* s) {
     free(s);
 }
 
+// ----------------------------------------------------------------------------
+
 void Stack_setDeallocator(Stack* s, void (*deallocator)(void* item)) {
     s->deallocator = deallocator;
 }
+
+void Stack_setDefaultAlloc(Stack* s, size_t size) {
+    s->default_alloc = size;
+}
+
+// ----------------------------------------------------------------------------
 
 // The amount is the amount of additional *items* the stack stack should have
 // enough space to store. The new base pointer of the stack is returned.
@@ -81,11 +91,12 @@ Stack* Stack_expandBy(Stack* s, size_t amount) {
 
     return s;
 }
-
 Stack* Stack_shrinkToFit(Stack* s) {
     Stack_expandBy(s, 0);
     return s;
 }
+
+// ----------------------------------------------------------------------------
 
 Stack* Stack_pushFrom(Stack* s, void* item) {
     if(((s->count + 1) * s->item_size) > s->allocated) {
@@ -194,37 +205,7 @@ void Stack_reClear(Stack* s) {
         s->allocated && s->item_size ? s->allocated / s->item_size : 0;
 }
 
-void Stack_setDefaultAlloc(Stack* s, size_t size) {
-    s->default_alloc = size;
-}
-
-Stack* Stack_print(Stack* s) {
-    printf("| Item Count: %zu | Item Size: %zu | Capacity: %zu | Allocated: "
-           "%zu |\n",
-           s->count,
-           s->item_size,
-           s->allocated / (s->item_size != 0 ? s->item_size : 1),
-           s->allocated);
-
-    printf("-------------------------------------------------------------\n");
-
-    for(int i = 0; i < s->count; ++i) {
-        void* item_location = s->base + (s->item_size * i);
-
-        printf("%d: |", i);
-
-        // Print item_size number of bytes in hex for each item.
-        for(int b = 0; b < s->item_size; ++b) {
-            char* byte = item_location + b;
-            printf("%02x|", *byte);
-        }
-
-        printf("\n");
-    }
-
-    printf("\n\n");
-    return s;
-}
+// ---------------------------------------------------------------------------- 
 
 size_t Stack_cloneData(Stack* s, void** dest) {
     size_t size = s->count * s->item_size;
@@ -261,6 +242,8 @@ Stack* Stack_deepClone(Stack* s, void (*item_cloner)(void* item, void* dest)) {
     return clone;
 }
 
+// ----------------------------------------------------------------------------
+
 BOOL Stack_empty(Stack* s) {
     return s->count == 0;
 }
@@ -284,6 +267,8 @@ void* Stack_itemAt(Stack* s, size_t index) {
     return s->base + (index * s->item_size);
 }
 
+// ----------------------------------------------------------------------------
+
 inline void* Stack_getBase(Stack* s) {
     return s->base;
 }
@@ -302,4 +287,34 @@ inline size_t Stack_getItemSize(Stack* s) {
 
 inline size_t Stack_getCapacity(Stack* s) {
     return s->allocated;
+}
+
+// ----------------------------------------------------------------------------
+
+Stack* Stack_print(Stack* s) {
+    printf("| Item Count: %zu | Item Size: %zu | Capacity: %zu | Allocated: "
+           "%zu |\n",
+           s->count,
+           s->item_size,
+           s->allocated / (s->item_size != 0 ? s->item_size : 1),
+           s->allocated);
+
+    printf("-------------------------------------------------------------\n");
+
+    for(int i = 0; i < s->count; ++i) {
+        void* item_location = s->base + (s->item_size * i);
+
+        printf("%d: |", i);
+
+        // Print item_size number of bytes in hex for each item.
+        for(int b = 0; b < s->item_size; ++b) {
+            char* byte = item_location + b;
+            printf("%02x|", *byte);
+        }
+
+        printf("\n");
+    }
+
+    printf("\n\n");
+    return s;
 }
