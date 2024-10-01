@@ -5,8 +5,6 @@
 #include <string.h>
 #include <ctype.h>
 
-#define DEBUG
-
 #ifndef BOOL
 #define BOOL int
 #endif
@@ -25,7 +23,6 @@ typedef struct IterErr {
     size_t      index;
 } IterErr;
 
-extern char* filter_whitespace(const char* input, size_t len);
 
 // A wrapper to malloc that aborts the program immediately if malloc fails.
 extern void* xmalloc(size_t size);
@@ -39,6 +36,10 @@ extern void* xrealloc(void* memory, size_t size);
 // Is functionally no different, only exists to make my life easier, and to
 // help when searching for malloc/free pairs via ripgrep.
 #define csrxmalloc xmalloc
+
+extern char* filter_whitespace(const char* input, size_t len);
+
+extern char* read_input(const char* prompt);
 
 #endif // _H_COMMON_
 

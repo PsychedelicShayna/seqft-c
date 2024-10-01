@@ -265,26 +265,28 @@ BOOL Tokenizer_parseAccNum(Tokenizer* t) {
     int custom_base =
         (t->accfl & (~(t->accfl & ~(ACC_HEX | ACC_OCT | ACC_BIN))));
 
+    BOOL is_float = t->accfl & ACC_FPN;
+
     int strtoll_base = custom_base ? custom_base : 10;
 
-    if(custom_base) {
+    if(custom_base || is_float) {
         if(count < 3) {
             Tokenizer_error(
-                t,
-                "Not enough digits to make a number of a different base.",
-                count);
+                t, "Incomplete number.", count);
 
             return TRUE;
         }
 
         // Exclude base specifier (0x, 0b, 0o, etc)
-        begin += 2;
-        len -= 2;
+        if(custom_base) {
+            begin += 2;
+            len -= 2;
+        }
     }
 
     memcpy(buffer, begin, len);
 
-    if(t->accfl & ACC_FPN) {
+    if(is_float) {
         token.f64 = atof(buffer);
     } else {
         token.f64 = strtoll(buffer, 0, strtoll_base);
@@ -315,7 +317,7 @@ TokenArray* Tokenizer_parse(Tokenizer* t, const char* cexpr, size_t expr_len) {
     expr_len = strlen(expr);
 
 #ifdef DEBUG
-    printf("Stripped Expression: '%s'(%zu). Originally '%s'(%zu)",
+    printf("Stripped Expression: '%s'(%zu). Originally '%s'(%zu)\n",
            expr,
            expr_len,
            cexpr,
@@ -403,13 +405,13 @@ TokenArray* Tokenizer_parse(Tokenizer* t, const char* cexpr, size_t expr_len) {
 
             if(t->accfl & ACC_DTZ) {
                 Tokenizer_error(
-                    t, "Leading zero in number is illegal in this context.", i);
+                    t, "Leading zero in number is illegal in this context.", 0);
                 return 0;
             }
 
             Stack_pushFrom(t->stacc, &c);
         } else {
-            Tokenizer_error(t, "How the hell did we get here?", i);
+            Tokenizer_error(t, "Invalid expression.", i);
             return 0;
         }
     }
