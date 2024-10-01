@@ -24,24 +24,24 @@ void* xrealloc(void* memory, size_t size) {
     return ptr;
 }
 
-char* filter_whitespace(const char* input, size_t len) {
-    char finput[len + 1];
-    memset(finput, 0, len + 1);
+size_t filter_whitespace(const char* input, size_t len, char* dest) {
+    char buffer[len + 2];
+    memset(buffer, 0, len + 2);
 
     for(int i = 0, j = 0; i < len; ++i) {
-        if(!isspace(finput[i])) {
-            finput[j] = input[i];
+        if(!isspace(input[i])) {
+            buffer[j] = input[i];
             ++j;
         }
     }
 
-    size_t flen = strlen(finput);
-
-    char* result = (char*)csrxmalloc(flen + 1);
-    memset(result, 0, flen + 1);
-    memcpy(result, finput, flen);
-
-    return result;
+    if(dest) {
+        size_t buflen = strlen(buffer);
+        memcpy(dest, buffer, buflen + 1);
+        return buflen;
+    } else {
+        return 0;
+    }
 }
 
 char* read_input(const char* prompt) {
@@ -66,5 +66,3 @@ char* read_input(const char* prompt) {
     buffer[len++] = '\0';
     return buffer;
 }
-
-

@@ -48,8 +48,8 @@ void highlight_error(const char* expr,
 
     printf("\n");
 
-    char* stripped = filter_whitespace(expr, expr_len);
-
+    char stripped[expr_len];
+    filter_whitespace(expr, expr_len, stripped);
 
     const size_t bufsize = indent + expr_len + strlen(error.message) + 1;
     char padding[bufsize];
@@ -68,7 +68,6 @@ void highlight_error(const char* expr,
     memset(padding, 0, bufsize);
 
     printf("\n\n");
-    free(stripped);
 }
 
 void test_tokenizer(const char* expr) {

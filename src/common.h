@@ -37,7 +37,7 @@ extern void* xrealloc(void* memory, size_t size);
 // help when searching for malloc/free pairs via ripgrep.
 #define csrxmalloc xmalloc
 
-extern char* filter_whitespace(const char* input, size_t len);
+extern size_t filter_whitespace(const char* input, size_t len, char* dest);
 
 extern char* read_input(const char* prompt);
 

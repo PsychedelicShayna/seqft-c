@@ -297,24 +297,15 @@ BOOL Tokenizer_parseAccNum(Tokenizer* t) {
 }
 
 TokenArray* Tokenizer_parse(Tokenizer* t, const char* cexpr, size_t expr_len) {
-    // Ensure the state of the tokenizer is clean.
-    // ------------------------------------------------------------------------
     Tokenizer_clear(t);
 
-    // First strip all whitespace from the expression.
-    // ------------------------------------------------------------------------
-
     char expr[expr_len + 1];
-    memset(expr, 0, expr_len + 1);
+    expr_len = filter_whitespace(cexpr, expr_len, expr);
 
-    for(int i = 0, j = 0; i < expr_len; ++i) {
-        if(!isspace(cexpr[i])) {
-            expr[j] = cexpr[i];
-            ++j;
-        }
+    if(!expr_len) {
+      perror("Could not filter whitespace from expression!\n");
+      abort();
     }
-
-    expr_len = strlen(expr);
 
 #ifdef DEBUG
     printf("Stripped Expression: '%s'(%zu). Originally '%s'(%zu)\n",
@@ -324,15 +315,10 @@ TokenArray* Tokenizer_parse(Tokenizer* t, const char* cexpr, size_t expr_len) {
            strlen(cexpr));
 #endif
 
-    // Now iterate through the expression.
-    // ------------------------------------------------------------------------
-
     for(int i = 0; i < expr_len; ++i) {
         char c = expr[i];
 
         TokenType op = t->tt_map[c];
-
-        // Finished accumulating a function.
 
         // It's an operator. Parse the accumulator, and add the operator token.
         // ------------------------------------------------------------------------
@@ -356,13 +342,15 @@ TokenArray* Tokenizer_parse(Tokenizer* t, const char* cexpr, size_t expr_len) {
             Tokenizer_addToken(t, &token);
         }
 
+        // If it's a letter and accflg is NIL, start accumulating a function.
         // --------------------------------------------------------------------
-
         else if(isalpha(c) && t->accfl == ACC_NIL) {
             Stack_pushFrom(t->stacc, &c);
             t->accfl = ACC_FUN;
         }
 
+        // If it's a digit and accflg is NIL, start accumulating a number.
+        // --------------------------------------------------------------------
         else if(isdigit(c) && t->accfl == ACC_NIL) {
             // If the first digit of an accumulation is 0, then there are some
             // rules that must be followed. A single zero is okay, but if a
@@ -374,11 +362,16 @@ TokenArray* Tokenizer_parse(Tokenizer* t, const char* cexpr, size_t expr_len) {
             Stack_pushFrom(t->stacc, &c);
         }
 
+        // If we're accumulating a function name, simply push the character.
+        // --------------------------------------------------------------------
         else if(t->accfl & ACC_FUN) {
             Stack_pushFrom(t->stacc, &c);
         }
 
+        // If we're accumulating a number, push the character, but..
+        // --------------------------------------------------------------------
         else if(t->accfl & ACC_NUM) {
+            // If this is the second character, check for a format specifier.
             if(Stack_getCount(t->stacc) == 1) {
                 switch(c) {
                     case 'x':
@@ -398,11 +391,17 @@ TokenArray* Tokenizer_parse(Tokenizer* t, const char* cexpr, size_t expr_len) {
                 }
             } else if((t->accfl & ACC_DEC) && c == '.') {
                 t->accfl = ACC_FPN;
-            } else if(!valid_for_base(c, t->accfl)) {
+            } 
+
+            // Otherwise, check if the character is valid for the number type.
+            else if(!valid_for_base(c, t->accfl)) {
                 Tokenizer_error(t, "Invalid character in number.", i);
                 return 0;
             }
 
+            // If the trailing zero flag has been set, and not removed by the
+            // conversion to another number type (hex, bin, oct, float), then
+            // this must be decimal, in which case a leading zero is illegal.
             if(t->accfl & ACC_DTZ) {
                 Tokenizer_error(
                     t, "Leading zero in number is illegal in this context.", 0);
@@ -410,7 +409,11 @@ TokenArray* Tokenizer_parse(Tokenizer* t, const char* cexpr, size_t expr_len) {
             }
 
             Stack_pushFrom(t->stacc, &c);
-        } else {
+        } 
+        
+        // If it's not an operator, letter, digit, the expression is invalid.
+        // --------------------------------------------------------------------
+        else {
             Tokenizer_error(t, "Invalid expression.", i);
             return 0;
         }
