@@ -38,6 +38,7 @@ typedef enum {
     TT_MUL = 0x00000020, //: *
     TT_POW = 0x00000040, //: ^
     TT_NEG = 0x00000080, //: ~  UNARY
+    TT_COM = 0x00010000, //: ,
     TT_OPA = 0x00100000, //: (
     TT_CPA = 0x00200000, //: )
     TT_NIL = 0xFFFFFFFF,

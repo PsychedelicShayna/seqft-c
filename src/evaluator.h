@@ -238,7 +238,7 @@ SftError* eval_x_is_operator(Sft* sft, Token token) {
 
         Token* top = Stack_getHead(operator_cellar);
 
-        if(top->type == TT_OPA)
+        if(top->type & TT_OPA)
             break;
 
         if(top->type < token.type)
@@ -259,7 +259,8 @@ SftError* eval_x_is_operator(Sft* sft, Token token) {
 
             if(!num2 || !num1) {
                 sprintf(sft->error.message,
-                        "Invalid expression, missing '%s' for binary operator '%s'\n\n",
+                        "Invalid expression, missing '%s' for binary operator "
+                        "'%s'\n\n",
                         num1 ? "num1" : "num2",
                         Token_toString(operator_token));
 
@@ -274,11 +275,11 @@ SftError* eval_x_is_operator(Sft* sft, Token token) {
             double* num = Stack_pop(number_cellar);
 
             if(!num) {
-                sprintf(
-                    sft->error.message,
-                    "Invalid expression, missing '%s' for unary operator '%s'\n\n",
-                    "num",
-                    Token_toString(operator_token));
+                sprintf(sft->error.message,
+                        "Invalid expression, missing '%s' for unary operator "
+                        "'%s'\n\n",
+                        "num",
+                        Token_toString(operator_token));
 
                 return &sft->error;
             }
@@ -365,7 +366,8 @@ SftError* eval_x_is_close_paren(Sft* sft, Token token) {
 
             if(!num2 || !num1) {
                 sprintf(sft->error.message,
-                        "Invalid expression, missing '%s' for binary operator '%s'\n\n",
+                        "Invalid expression, missing '%s' for binary operator "
+                        "'%s'\n\n",
                         num1 ? "num1" : "num2",
                         Token_toString(operator_token));
 
@@ -380,11 +382,11 @@ SftError* eval_x_is_close_paren(Sft* sft, Token token) {
             double* num = Stack_pop(number_cellar);
 
             if(!num) {
-                sprintf(
-                    sft->error.message,
-                    "Invalid expression, missing '%s' for unary operator '%s'\n\n",
-                    "num",
-                    Token_toString(operator_token));
+                sprintf(sft->error.message,
+                        "Invalid expression, missing '%s' for unary operator "
+                        "'%s'\n\n",
+                        "num",
+                        Token_toString(operator_token));
 
                 return &sft->error;
             }
@@ -430,7 +432,7 @@ SftError* Sft_evalTokens(Sft* sft, TokenArray* tokens, double* out_result) {
         //
         // - The precedence of the operator at the top of the operator
         //   cellar is LOWER than the precedence of t.
-        else if(token.type & TT_OPS) {
+        else if(token.type & (TT_OPS | TT_COM)) {
             // The first time we encounter an operator, simply add it, no
             // evaluation.
 
@@ -486,7 +488,8 @@ SftError* Sft_evalTokens(Sft* sft, TokenArray* tokens, double* out_result) {
 
             if(!num2 || !num1) {
                 sprintf(sft->error.message,
-                        "Invalid expression, missing '%s' for binary operator '%s'\n\n",
+                        "Invalid expression, missing '%s' for binary operator "
+                        "'%s'\n\n",
                         num1 ? "num2" : "num1",
                         Token_toString(operator_token));
 
@@ -501,11 +504,11 @@ SftError* Sft_evalTokens(Sft* sft, TokenArray* tokens, double* out_result) {
             double* num = Stack_pop(sft->number_stack);
 
             if(!num) {
-                sprintf(
-                    sft->error.message,
-                    "Invalid expression, missing '%s' for unary operator '%s'\n\n",
-                    "num",
-                    Token_toString(operator_token));
+                sprintf(sft->error.message,
+                        "Invalid expression, missing '%s' for unary operator "
+                        "'%s'\n\n",
+                        "num",
+                        Token_toString(operator_token));
 
                 return &sft->error;
             }

@@ -92,6 +92,10 @@ char* Token_toString(Token* token) {
         token->str[0] = '+';
     }
 
+    else if(token->type == TT_COM) {
+        token->str[0] = ',';
+    }
+
     else if(token->type == TT_SUB) {
         token->str[0] = '-';
     }
@@ -247,6 +251,7 @@ Tokenizer* Tokenizer_new() {
     t->tt_map['^'] = TT_POW;
     t->tt_map['~'] = TT_NEG;
     t->tt_map['('] = TT_OPA;
+    t->tt_map[','] = TT_OPA;
     t->tt_map[')'] = TT_CPA;
 
     return t;

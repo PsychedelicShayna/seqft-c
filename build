@@ -1,4 +1,26 @@
 #!/usr/bin/env bash
-cmake -G Ninja -B ./out
-ninja -C ./out
-cp ./out/compile_commands.json .
+
+# If the debug flag was given, then set the build type to Debug
+# and output to ./out/debug, or else set the build type to Release
+# and output to ./out/release.
+
+mkdir -p ./out/debug/
+mkdir -p ./out/release/
+
+if [ "$1" == "release" ]; then
+  cmake -DCMAKE_BUILD_TYPE=Release -G Ninja -B ./out/release
+  ninja -C ./out/release
+  cp ./out/release/compile_commands.json .
+  exit 0
+fi
+
+if [ "$1" == "clean" ]; then
+  rm -rf ./out/**/*
+  rm compile_commands.json
+  exit 0
+fi
+
+# Debug build by default.
+cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja -B ./out/debug
+ninja -C ./out/debug
+cp ./out/debug/compile_commands.json .
