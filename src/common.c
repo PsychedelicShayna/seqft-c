@@ -4,7 +4,7 @@
 #ifdef DEBUG
     #define dprintf(s, ...) printf(s, ...)
 #else
-    #define dprintf(v, ...) 
+    #define dprintf(v, ...)
 #endif
 
 // A wrapper to malloc that aborts the program immediately if malloc fails.
@@ -71,4 +71,14 @@ char* read_input(const char* prompt) {
 
     buffer[len++] = '\0';
     return buffer;
+}
+
+void minmax(int64_t* n1, int64_t* n2, int64_t** min, int64_t** max) {
+    if(*n1 < *n2) {
+        *min = n1;
+        *max = n2;
+    } else {
+        *min = n2;
+        *max = n1;
+    }
 }

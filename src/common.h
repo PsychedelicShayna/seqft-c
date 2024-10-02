@@ -19,9 +19,12 @@
 
 #ifdef DEBUG
     #define printdbg(...) printf(__VA_ARGS__)
+    #define DEBUGBLOCK(x) do { x; } while (0)
 #else
     #define printdbg(...) 
+    #define DEBUGBLOCK(x) do { } while (0)
 #endif
+
 
 // Represents any non-recoverable error that can occur during iteration.
 typedef struct IterErr {
@@ -46,6 +49,9 @@ extern void* xrealloc(void* memory, size_t size);
 extern size_t filter_whitespace(const char* input, size_t len, char* dest);
 
 extern char* read_input(const char* prompt);
+
+
+extern void minmax(int64_t* n1, int64_t* n2, int64_t** min, int64_t** max);
 
 #endif // _H_COMMON_
 

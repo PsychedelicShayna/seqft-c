@@ -84,17 +84,30 @@ void test_sft(const char* expr) {
 
     TokenArray* token_array = Tokenizer_parse(t, expr, expr_len);
 
-#ifdef DEBUG
-    // if(token_array) {
+    // char buffer[256];
     //
-    //     for(int i = 0; i < token_array->count; ++i) {
-    //         Token* t = &token_array->tokens[i];
-    //         Token_print(t);
-    //     }
-    //
-    //     // TokenArray_freeMembers(token_array);
-    //     // free(token_array);
+    // for(int i = 0; i < token_array->count; ++i) {
+    //     Token  t   = token_array->tokens[i];
+    //     size_t len = Token_toString(&t, buffer);
+    //     printf("Token '%s'\n", buffer);
     // }
+    //
+    // return;
+
+#ifdef DEBUG
+    if(token_array) {
+
+        for(int i = 0; i < token_array->count; ++i) {
+            Token* t = &token_array->tokens[i];
+            Token_print(t);
+            if(t->func) {
+                printf("Has func: %s\n", t->func);
+            }
+        }
+
+        // TokenArray_freeMembers(token_array);
+        // free(token_array);
+    }
 #endif
 
     if(t->error) {
@@ -107,12 +120,14 @@ void test_sft(const char* expr) {
     if(token_array) {
         double result = 0;
 
-        if(Sft_evalTokens(sft, token_array, &result)) {
-            perror("Failed to evaluate tokens!");
-            return;
+        SftError* error =Sft_evalTokens(sft, token_array, &result);
+
+        if(error) {
+          printf("%s", error->message);
+        } else {
+          printf("Result: %f\n", result);
         }
 
-        printf("Result: %f\n", result);
     }
 
     TokenArray_free(token_array);

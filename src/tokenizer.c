@@ -76,6 +76,61 @@
  *         - Always: add the token for the operator, if it's a valid operator.
  * */
 
+char* Token_toString(Token* token) {
+    memset(token->str, 0, sizeof(token->str));
+
+    if(token->type == TT_OPA && token->func) {
+        memcpy(token->str, token->func, strlen(token->func));
+        token->str[strlen(token->func)] = '(';
+    }
+
+    else if(token->type == TT_NUM) {
+        snprintf(token->str, sizeof(token->str), "%.2f", token->f64);
+    }
+
+    else if(token->type == TT_ADD) {
+        token->str[0] = '+';
+    }
+
+    else if(token->type == TT_SUB) {
+        token->str[0] = '-';
+    }
+
+    else if(token->type == TT_DIV) {
+        token->str[0] = '/';
+    }
+
+    else if(token->type == TT_MOD) {
+        token->str[0] = '%';
+    }
+
+    else if(token->type == TT_MUL) {
+        token->str[0] = '*';
+    }
+
+    else if(token->type == TT_POW) {
+        token->str[0] = '^';
+    }
+
+    else if(token->type == TT_NEG) {
+        token->str[0] = '~';
+    }
+
+    else if(token->type == TT_OPA) {
+        token->str[0] = '(';
+    }
+
+    else if(token->type == TT_CPA) {
+        token->str[0] = ')';
+    }
+
+    else {
+        token->str[0] = '?';
+    }
+
+    return token->str;
+}
+
 void Token_print(Token* t) {
     char* b = TokenType_toString(t->type);
 

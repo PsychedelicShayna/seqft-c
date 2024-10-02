@@ -51,6 +51,7 @@ typedef struct Token {
     TokenType type;
     double    f64;
     char*     func;
+    char      str[256];
 } Token;
 
 typedef enum {
@@ -72,6 +73,8 @@ typedef struct {
     Token* tokens;
     size_t count;
 } TokenArray;
+
+extern char* Token_toString(Token* token);
 
 extern void Token_print(Token* t);
 
