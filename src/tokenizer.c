@@ -79,7 +79,7 @@
 char* Token_toString(Token* token) {
     memset(token->str, 0, sizeof(token->str));
 
-    if(token->type == TT_OPA && token->func) {
+    if(token->type == SYM_LPAR && token->func) {
         memcpy(token->str, token->func, strlen(token->func));
         token->str[strlen(token->func)] = '(';
     }
@@ -88,43 +88,43 @@ char* Token_toString(Token* token) {
         snprintf(token->str, sizeof(token->str), "%.2f", token->f64);
     }
 
-    else if(token->type == TT_ADD) {
+    else if(token->type == OPER_ADD) {
         token->str[0] = '+';
     }
 
-    else if(token->type == TT_COM) {
+    else if(token->type == SYM_COMA) {
         token->str[0] = ',';
     }
 
-    else if(token->type == TT_SUB) {
+    else if(token->type == OPER_SUB) {
         token->str[0] = '-';
     }
 
-    else if(token->type == TT_DIV) {
+    else if(token->type == OPER_DIV) {
         token->str[0] = '/';
     }
 
-    else if(token->type == TT_MOD) {
+    else if(token->type == OPER_MOD) {
         token->str[0] = '%';
     }
 
-    else if(token->type == TT_MUL) {
+    else if(token->type == OPER_MUL) {
         token->str[0] = '*';
     }
 
-    else if(token->type == TT_POW) {
+    else if(token->type == OPER_POW) {
         token->str[0] = '^';
     }
 
-    else if(token->type == TT_NEG) {
+    else if(token->type == OPER_NEGATE) {
         token->str[0] = '~';
     }
 
-    else if(token->type == TT_OPA) {
+    else if(token->type == SYM_LPAR) {
         token->str[0] = '(';
     }
 
-    else if(token->type == TT_CPA) {
+    else if(token->type == SYM_RPAR) {
         token->str[0] = ')';
     }
 
@@ -193,32 +193,34 @@ char* TokenType_toString(TokenType ttype) {
         case TT_NUM:
             sprintf(buffer, "Number");
             break;
-        case TT_ADD:
+        case OPER_ADD:
             sprintf(buffer, "Operator [ + ]");
             break;
-        case TT_SUB:
+        case OPER_SUB:
             sprintf(buffer, "Operator [ - ]");
             break;
-        case TT_DIV:
+        case OPER_DIV:
             sprintf(buffer, "Operator [ / ]");
             break;
-        case TT_MOD:
+        case OPER_MOD:
             sprintf(buffer, "Operator [ %% ]");
             break;
-        case TT_MUL:
+        case OPER_MUL:
             sprintf(buffer, "Operator [ * ]");
             break;
-        case TT_POW:
+        case OPER_POW:
             sprintf(buffer, "Operator [ ^ ]");
             break;
-        case TT_NEG:
+        case OPER_NEGATE:
             sprintf(buffer, "Operator [ ~ ]");
             break;
-        case TT_OPA:
-            sprintf(buffer, "Operator [ ( ]");
+        case SYM_LPAR:
+            sprintf(buffer, "Symbol: (");
             break;
-        case TT_CPA:
-            sprintf(buffer, "Operator [ ) ]");
+        case SYM_COMA:
+            sprintf(buffer, "Symbol: ,");
+        case SYM_RPAR:
+            sprintf(buffer, "Symbol: )");
             break;
         default:
             sprintf(buffer, "Unknown Token Type: %b", ttype);
@@ -243,16 +245,16 @@ Tokenizer* Tokenizer_new() {
 
     // Define char -> TokenType resolution.
     memset(t->tt_map, 0, sizeof(TokenType) * 256);
-    t->tt_map['+'] = TT_ADD;
-    t->tt_map['-'] = TT_SUB;
-    t->tt_map['/'] = TT_DIV;
-    t->tt_map['%'] = TT_MOD;
-    t->tt_map['*'] = TT_MUL;
-    t->tt_map['^'] = TT_POW;
-    t->tt_map['~'] = TT_NEG;
-    t->tt_map['('] = TT_OPA;
-    t->tt_map[','] = TT_OPA;
-    t->tt_map[')'] = TT_CPA;
+    t->tt_map['+'] = OPER_ADD;
+    t->tt_map['-'] = OPER_SUB;
+    t->tt_map['/'] = OPER_DIV;
+    t->tt_map['%'] = OPER_MOD;
+    t->tt_map['*'] = OPER_MUL;
+    t->tt_map['^'] = OPER_POW;
+    t->tt_map['~'] = OPER_NEGATE;
+    t->tt_map['('] = SYM_LPAR;
+    t->tt_map[','] = SYM_COMA;
+    t->tt_map[')'] = SYM_RPAR;
 
     return t;
 }
@@ -387,22 +389,22 @@ TokenArray* Tokenizer_parse(Tokenizer* t, const char* cexpr, size_t expr_len) {
 
         // It's an operator. Parse the accumulator, and add the operator token.
         // ------------------------------------------------------------------------
-        if(op & TT_OPA && t->accfl & ACC_FUN) {
-            Token token = {.type = TT_OPA, .f64 = 0, .func = 0};
+        if(op & SYM_LPAR && t->accfl & ACC_FUN) {
+            Token token = {.type = SYM_LPAR, .f64 = 0, .func = 0};
             token.func  = (char*)xmalloc(Stack_getCount(t->stacc) + 1);
             memset(token.func, 0, Stack_getCount(t->stacc) + 1);
             memcpy(
                 token.func, Stack_getBase(t->stacc), Stack_getCount(t->stacc));
 
             Tokenizer_addToken(t, &token);
-        } else if(op & (TT_OPS | TT_PAS) && t->accfl & ACC_NUM) {
+        } else if(op & (OPERATOR_TOKENS | SYMBOL_TOKENS) && t->accfl & ACC_NUM) {
             // Returns non-zero on error.
             if(Tokenizer_parseAccNum(t)) {
                 return 0;
             }
 
             Tokenizer_addToken(t, &(Token) {.type = op, .f64 = 0, .func = 0});
-        } else if(op & (TT_OPS | TT_PAS)) {
+        } else if(op & (OPERATOR_TOKENS | SYMBOL_TOKENS)) {
             Token token = {.type = op, .f64 = 0, .func = 0};
             Tokenizer_addToken(t, &token);
         }

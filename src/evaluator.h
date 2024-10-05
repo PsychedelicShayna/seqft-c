@@ -11,7 +11,8 @@
 #include <unistd.h>
 
 typedef struct {
-    char* name;
+    char*  name;
+    size_t args_req;
     double (*ptr)(double nums[], size_t len);
 } Function;
 
@@ -31,9 +32,9 @@ double sft_ceil(double nums[], size_t len) {
     return ceil(num);
 }
 
-Function FN_LOOKUP[] = {
-    (Function) {.ptr = sft_round, .name = "round"},
-    (Function) {.ptr = sft_ceil,  .name = "ceil" }
+Function FN_LOOKUP[2] = {
+    (Function) {.ptr = sft_round, .name = "round", .args_req = 1},
+    (Function) {.ptr = sft_ceil,  .name = "ceil",  .args_req = 1}
 };
 
 typedef struct SftDrawer SftDrawer;
@@ -197,29 +198,29 @@ Sft* Sft_new() {
 }
 
 double eval_binary_op(TokenType operator_type, double num1, double num2) {
-    if(operator_type == TT_ADD)
+    if(operator_type == OPER_ADD)
         return num1 + num2;
 
-    else if(operator_type == TT_SUB)
+    else if(operator_type == OPER_SUB)
         return num1 - num2;
 
-    else if(operator_type == TT_DIV)
+    else if(operator_type == OPER_DIV)
         return num1 / num2;
 
-    else if(operator_type == TT_MUL)
+    else if(operator_type == OPER_MUL)
         return num1 * num2;
 
-    else if(operator_type == TT_MOD)
+    else if(operator_type == OPER_MOD)
         return (uint64_t)num1 % (uint64_t)num2;
 
-    else if(operator_type == TT_POW)
+    else if(operator_type == OPER_POW)
         return pow(num1, num2);
     else
         return 0xDEADC0DE;
 }
 
 double eval_unary_op(TokenType operator_type, double num) {
-    if(operator_type & TT_NEG) {
+    if(operator_type & OPER_NEGATE) {
         return -(num);
     }
 
@@ -238,7 +239,7 @@ SftError* eval_x_is_operator(Sft* sft, Token token) {
 
         Token* top = Stack_getHead(operator_cellar);
 
-        if(top->type & TT_OPA)
+        if(top->type & (SYM_LPAR | SYM_COMA))
             break;
 
         if(top->type < token.type)
@@ -250,7 +251,7 @@ SftError* eval_x_is_operator(Sft* sft, Token token) {
         double result_to_push = 0;
 
         // Eval binary operators.
-        if(operator_token->type & TT_BOP) {
+        if(operator_token->type & BINARY_OPERATOR_) {
             double* num2 = Stack_pop(number_cellar);
             DEBUGBLOCK({ Sft_draw(drawer); });
 
@@ -259,7 +260,7 @@ SftError* eval_x_is_operator(Sft* sft, Token token) {
 
             if(!num2 || !num1) {
                 sprintf(sft->error.message,
-                        "Invalid expression, missing '%s' for binary operator "
+                        "Invalid expression, missing '%s' for binary operator"
                         "'%s'\n\n",
                         num1 ? "num1" : "num2",
                         Token_toString(operator_token));
@@ -271,7 +272,7 @@ SftError* eval_x_is_operator(Sft* sft, Token token) {
         }
 
         // Eval unary operators.
-        else if(operator_token->type & TT_UOP) {
+        else if(operator_token->type & OPERATORS_UNARY) {
             double* num = Stack_pop(number_cellar);
 
             if(!num) {
@@ -303,6 +304,8 @@ SftError* eval_x_is_close_paren(Sft* sft, Token token) {
     Stack*     number_cellar   = sft->number_stack;
     SftDrawer* drawer          = sft->drawer;
 
+    size_t comas_encountered = 0;
+
     while(1) {
         double result_to_push = 0;
 
@@ -311,57 +314,124 @@ SftError* eval_x_is_close_paren(Sft* sft, Token token) {
 
         Token* top = Stack_getHead(operator_cellar);
 
-        if(top->type == TT_OPA) {
+        if(top->type == SYM_LPAR) {
             if(top->func) {
 
                 int found_func = 0;
 
-                for(int i = 0; i < 2; ++i) {
+                for(unsigned long i = 0; i < sizeof(FN_LOOKUP); ++i) {
                     Function* f = &FN_LOOKUP[i];
 
                     if(!strcmp(f->name, top->func)) {
                         found_func = 1;
 
-                        double* num = Stack_pop(number_cellar);
-
-                        DEBUGBLOCK({ Sft_draw(drawer); });
-
-                        if(!num) {
+                        if((comas_encountered + 1) != f->args_req) {
                             sprintf(sft->error.message,
-                                    "Invalid expression, missing argument for"
-                                    "function '%s'\n\n",
-                                    Token_toString(top));
+                                    "Invalid number of arguments for function "
+                                    "'%s', expected %zu, got %zu",
+                                    f->name,
+                                    f->args_req,
+                                    comas_encountered + 1);
 
+                            free(Stack_pop(operator_cellar));
                             return &sft->error;
                         }
 
-                        double nums[1] = {*num};
-                        double result  = f->ptr(nums, 1);
+                        if(Stack_getCount(number_cellar) < f->args_req) {
+                            sprintf(sft->error.message,
+                                    "Missing required number of arguments for "
+                                    "function "
+                                    "'%s', expected %zu, but only %zu values "
+                                    "remain. ",
+                                    f->name,
+                                    f->args_req,
+                                    comas_encountered + 1);
+
+                            sprintf(sft->error.message,
+                                    "Missing required number of arguments for "
+                                    "function "
+                                    "'%s', expected %zu, but only %zu values "
+                                    "remain.",
+                                    f->name,
+                                    f->args_req,
+                                    comas_encountered + 1);
+
+                            free(Stack_pop(operator_cellar));
+                            return &sft->error;
+                        }
+
+                        double fn_args[f->args_req];
+
+                        for(int i = 0; i < f->args_req; ++i) {
+                            double* num = Stack_pop(number_cellar);
+                            if(!num) {
+                                free(num);
+
+                                sprintf(sft->error.message,
+                                        "Failed to pop sufficient arguments "
+                                        "from the number stack, '%s' expected "
+                                        "%zu arguments, but only got %u/%zu of "
+                                        "the way through",
+                                        f->name,
+                                        f->args_req,
+                                        i,
+                                        f->args_req);
+
+                                sprintf(sft->error.message,
+                                        "Failed to pop sufficient arguments "
+                                        "from the number stack"
+                                        "'%s', expected %zu arguments, but "
+                                        "only  got %u/%zu of the way through.",
+                                        f->name,
+                                        f->args_req,
+                                        i,
+                                        f->args_req);
+
+                                free(Stack_pop(operator_cellar));
+                                return &sft->error;
+                            }
+
+                            fn_args[i] = *num;
+                            free(num);
+                        }
+
+                        DEBUGBLOCK({ Sft_draw(drawer); });
+
+                        double result = f->ptr(fn_args, f->args_req);
                         Stack_pushFrom(number_cellar, &result);
                         DEBUGBLOCK({ Sft_draw(drawer); });
                         break;
                     }
+
+                    if(!found_func) {
+                        sprintf(sft->error.message,
+                                "\nNo such function '%s'\n",
+                                top->func);
+                        free(Stack_pop(operator_cellar));
+                        return &sft->error;
+                    }
                 }
 
-                if(!found_func) {
-                    printf("\nNo such function '%s'\n", top->func);
-                }
+                free(Stack_pop(operator_cellar));
+                DEBUGBLOCK({ Sft_draw(drawer); });
+                break;
             }
-
-            free(Stack_pop(operator_cellar));
-            DEBUGBLOCK({ Sft_draw(drawer); });
-            break;
         }
-
         Token* operator_token = Stack_pop(operator_cellar);
         DEBUGBLOCK({ Sft_draw(drawer); });
 
+        if(operator_token->type == SYM_COMA) {
+            comas_encountered++;
+            continue;
+        }
+
         // Eval binary operators.
-        if(operator_token->type & TT_BOP) {
+        if(operator_token->type & BINARY_OPERATOR_) {
             double* num2 = Stack_pop(number_cellar);
             DEBUGBLOCK({ Sft_draw(drawer); });
 
             double* num1 = Stack_pop(number_cellar);
+
             DEBUGBLOCK({ Sft_draw(drawer); });
 
             if(!num2 || !num1) {
@@ -378,7 +448,7 @@ SftError* eval_x_is_close_paren(Sft* sft, Token token) {
         }
 
         // Eval unary operators.
-        else if(operator_token->type & TT_UOP) {
+        else if(operator_token->type & OPERATORS_UNARY) {
             double* num = Stack_pop(number_cellar);
 
             if(!num) {
@@ -413,7 +483,7 @@ SftError* Sft_evalTokens(Sft* sft, TokenArray* tokens, double* out_result) {
     drawer->padding   = 0;
 
     // Iterate from left to right.
-    for(int i = 0; i < tokens->count; ++i) {
+    for(size_t i = 0; i < tokens->count; ++i) {
         drawer->tarray_idx = i;
         DEBUGBLOCK({ Sft_draw(drawer); });
 
@@ -432,7 +502,7 @@ SftError* Sft_evalTokens(Sft* sft, TokenArray* tokens, double* out_result) {
         //
         // - The precedence of the operator at the top of the operator
         //   cellar is LOWER than the precedence of t.
-        else if(token.type & (TT_OPS | TT_COM)) {
+        else if(token.type & (OPERATOR_TOKENS | SYM_COMA)) {
             // The first time we encounter an operator, simply add it, no
             // evaluation.
 
@@ -447,10 +517,11 @@ SftError* Sft_evalTokens(Sft* sft, TokenArray* tokens, double* out_result) {
             // Then place X in the cellar.
             debug_step(drawer, "\n> Push Operator\n");
             Stack_pushFrom(sft->operator_stack, &token);
+
         }
 
         // If X is an open parenthesis, push X onto the operator cellar.
-        else if(token.type & TT_OPA) {
+        else if(token.type & SYM_LPAR) {
             debug_step(drawer, "\n> Push Operator\n");
             Stack_pushFrom(sft->operator_stack, &token);
         }
@@ -459,7 +530,7 @@ SftError* Sft_evalTokens(Sft* sft, TokenArray* tokens, double* out_result) {
         // - Evaluate operators until an open parenthesis is at the
         //   top of the operator cellar
         // - Remove the open parenthesis from the operator cellar.
-        else if(token.type & TT_CPA) {
+        else if(token.type & SYM_RPAR) {
             debug_step(drawer, "\n> Evaluate Stack\n");
             SftError* error = eval_x_is_close_paren(sft, token);
 
@@ -471,7 +542,8 @@ SftError* Sft_evalTokens(Sft* sft, TokenArray* tokens, double* out_result) {
 
     debug_step(drawer, "\n> Evaluate Stack\n");
 
-    // If there are no more tokens to read, evaluate the remaining operators.
+    // If there are no more tokens to read, evaluate the remaining
+    // operators.
     while(1) {
         if(Stack_empty(sft->operator_stack)) {
             break;
@@ -482,7 +554,7 @@ SftError* Sft_evalTokens(Sft* sft, TokenArray* tokens, double* out_result) {
         double result_to_push = 0;
 
         // Eval binary operators.
-        if(operator_token->type & TT_BOP) {
+        if(operator_token->type & BINARY_OPERATOR_) {
             double* num2 = Stack_pop(sft->number_stack);
             double* num1 = Stack_pop(sft->number_stack);
 
@@ -500,7 +572,7 @@ SftError* Sft_evalTokens(Sft* sft, TokenArray* tokens, double* out_result) {
         }
 
         // Eval unary operators.
-        else if(operator_token->type & TT_UOP) {
+        else if(operator_token->type & OPERATORS_UNARY) {
             double* num = Stack_pop(sft->number_stack);
 
             if(!num) {

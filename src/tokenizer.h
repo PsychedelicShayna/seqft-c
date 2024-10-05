@@ -30,22 +30,23 @@
 //  must follow the rules.
 
 typedef enum {
-    TT_NUM = 0x00000001,
-    TT_ADD = 0x00000002, //: +
-    TT_SUB = 0x00000004, //: -
-    TT_DIV = 0x00000008, //: /
-    TT_MOD = 0x00000010, //: %
-    TT_MUL = 0x00000020, //: *
-    TT_POW = 0x00000040, //: ^
-    TT_NEG = 0x00000080, //: ~  UNARY
-    TT_COM = 0x00010000, //: ,
-    TT_OPA = 0x00100000, //: (
-    TT_CPA = 0x00200000, //: )
-    TT_NIL = 0xFFFFFFFF,
-    TT_UOP = TT_NEG,
-    TT_BOP = TT_ADD | TT_SUB | TT_DIV | TT_MOD | TT_MUL | TT_POW,
-    TT_OPS = TT_UOP | TT_BOP,
-    TT_PAS = TT_OPA | TT_CPA,
+    TT_NUM      = 0x00000001,
+    OPER_ADD    = 0x00000002, //: +
+    OPER_SUB    = 0x00000004, //: -
+    OPER_DIV    = 0x00000008, //: /
+    OPER_MOD    = 0x00000010, //: %
+    OPER_MUL    = 0x00000020, //: *
+    OPER_POW    = 0x00000040, //: ^
+    OPER_NEGATE = 0x00000080, //: ~  UNARY
+    SYM_COMA    = 0x00010000, //: ,
+    SYM_LPAR    = 0x00100000, //: (
+    SYM_RPAR    = 0x00200000, //: )
+    NULLTOKEN    = 0x02FFFFFF,
+    OPERATORS_UNARY  = OPER_NEGATE,
+    BINARY_OPERATOR_ =
+        OPER_ADD | OPER_SUB | OPER_DIV | OPER_MOD | OPER_MUL | OPER_POW,
+    OPERATOR_TOKENS = OPERATORS_UNARY | BINARY_OPERATOR_,
+    SYMBOL_TOKENS   = SYM_LPAR | SYM_RPAR,
 } TokenType;
 
 typedef struct Token {
