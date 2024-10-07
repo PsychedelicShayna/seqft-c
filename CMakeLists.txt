@@ -9,18 +9,22 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -O0")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3")
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD 23)
 
 add_executable(${PROJECT_NAME}
+  src/evaluator.h
+  src/tokenizer.c
+  src/tokent_t.c
+  src/visualizer.h
+  src/common.h
+  src/tokent_t.h
+  src/evaluator.c
+  src/visualizer.c
+  src/tokenizer.h
   src/main.c
   src/stack.c
   src/stack.h
-  src/tokenizer.c
-  src/tokenizer.h
-  src/common.h
   src/common.c
-  src/evaluator.c
-  src/evaluator.h
 )
 
 # Libraries to be statically linked with executable.  

@@ -3,7 +3,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
 #ifndef BOOL
 #define BOOL int
@@ -24,6 +23,8 @@
     #define printdbg(...) 
     #define DEBUGBLOCK(x) do { } while (0)
 #endif
+
+
 
 
 // Represents any non-recoverable error that can occur during iteration.
@@ -52,6 +53,8 @@ extern char* read_input(const char* prompt);
 
 
 extern void minmax(int64_t* n1, int64_t* n2, int64_t** min, int64_t** max);
+
+extern inline bool char_in(char character, const char* charset);
 
 #endif // _H_COMMON_
 

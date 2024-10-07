@@ -22,7 +22,7 @@ typedef struct Stack {
     void (*deallocator)(void* item);
 } Stack;
 
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 //
 Stack* Stack_new(size_t item_size) {
     Stack* s = (Stack*)xmalloc(sizeof(Stack));
@@ -54,7 +54,7 @@ void Stack_free(Stack* s) {
 
     if(s->base) {
         if(s->deallocator) {
-            for(int i = 0; i < Stack_getCount(s); ++i) {
+            for(size_t i = 0; i < Stack_getCount(s); ++i) {
                 void* item = Stack_itemAt(s, i);
                 s->deallocator(item);
             }
@@ -72,9 +72,7 @@ void Stack_setDeallocator(Stack* s, void (*deallocator)(void* item)) {
     s->deallocator = deallocator;
 }
 
-void Stack_setDefaultAlloc(Stack* s, size_t size) {
-    s->default_alloc = size;
-}
+void Stack_setDefaultAlloc(Stack* s, size_t size) { s->default_alloc = size; }
 
 // ----------------------------------------------------------------------------
 
@@ -154,8 +152,7 @@ void Stack_rePop(Stack* s, void* cpyout) {
     size_t required_alloc = s->count * s->item_size;
 
     if(required_alloc == 0) {
-        required_alloc =
-            s->default_alloc ? s->default_alloc : STACK_DEFAULT_ALLOC;
+        required_alloc = s->default_alloc ? s->default_alloc : STACK_DEFAULT_ALLOC;
     }
 
     size_t head_delta = s->head - s->base;
@@ -180,17 +177,15 @@ void Stack_clear(Stack* s) {
 // This will pass the items on the stack through the custom deallocator if it
 // was provided, and reallocate the stack to size specified by efault_alloc
 // field, if set. If not, defaults to STACK_DEFAULT_ALLOC global macro (4096).
-void Stack_reClear(Stack* s) { if(!s || !s->base)
+void Stack_reClear(Stack* s) {
+    if(!s || !s->base)
         return;
 
     if(s->deallocator) {
-        for(int i = 0; i < s->count; ++i) {
-            s->deallocator(Stack_itemAt(s, i));
-        }
+        for(int i = 0; i < s->count; ++i) { s->deallocator(Stack_itemAt(s, i)); }
     }
 
-    size_t required_alloc =
-        s->default_alloc ? s->default_alloc : STACK_DEFAULT_ALLOC;
+    size_t required_alloc = s->default_alloc ? s->default_alloc : STACK_DEFAULT_ALLOC;
 
     // s->base      = xrealloc(s->base, required_alloc);
 
@@ -200,11 +195,10 @@ void Stack_reClear(Stack* s) { if(!s || !s->base)
     s->allocated = required_alloc;
     s->count     = 0;
     s->head      = s->base;
-    s->capacity =
-        s->allocated && s->item_size ? s->allocated / s->item_size : 0;
+    s->capacity  = s->allocated && s->item_size ? s->allocated / s->item_size : 0;
 }
 
-// ---------------------------------------------------------------------------- 
+// ----------------------------------------------------------------------------
 
 size_t Stack_cloneData(Stack* s, void** dest) {
     size_t size = s->count * s->item_size;
@@ -217,7 +211,7 @@ size_t Stack_cloneData(Stack* s, void** dest) {
 }
 
 Stack* Stack_deepClone(Stack* s, void (*item_cloner)(void* item, void* dest)) {
-    Stack* clone         = (Stack*)csrxmalloc(sizeof(Stack));
+    Stack* clone = (Stack*)csrxmalloc(sizeof(Stack));
 
     clone->count         = s->count;
     clone->item_size     = s->item_size;
@@ -235,7 +229,7 @@ Stack* Stack_deepClone(Stack* s, void (*item_cloner)(void* item, void* dest)) {
             item_cloner(item, clone->base + (i * clone->item_size));
         }
     } else {
-      memcpy(clone->base, s->base, s->allocated);
+        memcpy(clone->base, s->base, s->allocated);
     }
 
     return clone;
@@ -243,9 +237,7 @@ Stack* Stack_deepClone(Stack* s, void (*item_cloner)(void* item, void* dest)) {
 
 // ----------------------------------------------------------------------------
 
-BOOL Stack_empty(Stack* s) {
-    return s->count == 0;
-}
+BOOL Stack_empty(Stack* s) { return s->count == 0; }
 
 void* Stack_first(Stack* s) {
     if(s->count == 0)
@@ -268,34 +260,22 @@ void* Stack_itemAt(Stack* s, size_t index) {
 
 // ----------------------------------------------------------------------------
 
-inline void* Stack_getBase(Stack* s) {
-    return s->base;
-}
+inline void* Stack_getBase(Stack* s) { return s->base; }
 
-inline void* Stack_getHead(Stack* s) {
-    return s->head;
-}
+inline void* Stack_getHead(Stack* s) { return s->head; }
 
-inline size_t Stack_getCount(Stack* s) {
-    return s->count;
-}
+inline size_t Stack_getCount(Stack* s) { return s->count; }
 
-inline size_t Stack_getItemSize(Stack* s) {
-    return s->item_size;
-}
+inline size_t Stack_getItemSize(Stack* s) { return s->item_size; }
 
-inline size_t Stack_getCapacity(Stack* s) {
-    return s->allocated;
-}
+inline size_t Stack_getCapacity(Stack* s) { return s->allocated; }
 
 // ----------------------------------------------------------------------------
 
 Stack* Stack_print(Stack* s) {
     printf("| Item Count: %zu | Item Size: %zu | Capacity: %zu | Allocated: "
            "%zu |\n",
-           s->count,
-           s->item_size,
-           s->allocated / (s->item_size != 0 ? s->item_size : 1),
+           s->count, s->item_size, s->allocated / (s->item_size != 0 ? s->item_size : 1),
            s->allocated);
 
     printf("-------------------------------------------------------------\n");

@@ -1,4 +1,5 @@
 #include "common.h"
+#include <ctype.h>
 #include <stdio.h>
 
 #ifdef DEBUG
@@ -34,7 +35,7 @@ size_t filter_whitespace(const char* input, size_t len, char* dest) {
     char buffer[len + 2];
     memset(buffer, 0, len + 2);
 
-    for(int i = 0, j = 0; i < len; ++i) {
+    for(size_t i = 0, j = 0; i < len; ++i) {
         if(!isspace(input[i])) {
             buffer[j] = input[i];
             ++j;
@@ -81,4 +82,13 @@ void minmax(int64_t* n1, int64_t* n2, int64_t** min, int64_t** max) {
         *min = n2;
         *max = n1;
     }
+}
+
+bool char_in(char character, const char* charset) {
+    for(size_t i = 0; i < strlen(charset); ++i) {
+        if(character == charset[i])
+            return true;
+    }
+
+    return false;
 }

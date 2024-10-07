@@ -42,10 +42,7 @@ void test_stack() {
     printdbg("Popped: %d\n", *y);
 }
 
-void highlight_error(const char* expr,
-                     size_t      expr_len,
-                     IterErr     error,
-                     size_t      indent) {
+void highlight_error(const char* expr, size_t expr_len, IterErr error, size_t indent) {
 
     printf("\n");
 
@@ -72,17 +69,27 @@ void highlight_error(const char* expr,
 }
 
 void test_sft(const char* expr) {
-    Tokenizer* t   = Tokenizer_new();
-    Sft*       sft = Sft_new();
+    Tokenizer* tokenizer = Tokenizer_new();
+    Sft*       sft       = Sft_new();
 
     size_t expr_len = strlen(expr);
 
     if(!expr_len) {
-        Tokenizer_free(t);
+        Tokenizer_free(tokenizer);
         return;
     }
 
-    TokenArray* token_array = Tokenizer_parse(t, expr, expr_len);
+    TokenArray token_array;
+
+    if(!Tokenizer_tokenize(tokenizer, expr, expr_len, &token_array)) {
+        highlight_error(expr, expr_len, *tokenizer->error, 2);
+        Tokenizer_free(tokenizer);
+    }
+
+    if(tokenizer->error) {
+        fprintf(stderr, "Error in tokenizer  %s, idx %zu", tokenizer->error->message, tokenizer->error->index);
+        return;
+    }
 
     // char buffer[256];
     //
@@ -110,61 +117,47 @@ void test_sft(const char* expr) {
     }
 #endif
 
-    if(t->error) {
-        highlight_error(expr, expr_len, *t->error, 2);
-        TokenArray_free(token_array);
-        Tokenizer_free(t);
-        return;
+    double result = 0;
+    SftError* error = Sft_evalTokens(sft, &token_array, &result);
+
+    if(error) {
+        printf("%s", error->message);
+    } else {
+        printf("Result: %f\n", result);
     }
 
-    if(token_array) {
-        double result = 0;
-
-        SftError* error =Sft_evalTokens(sft, token_array, &result);
-
-        if(error) {
-          printf("%s", error->message);
-        } else {
-          printf("Result: %f\n", result);
-        }
-
-    }
-
-    TokenArray_free(token_array);
-    Tokenizer_free(t);
+    Tokenizer_free(tokenizer);
 }
 
 void test_tokenizer(const char* expr) {
-    Tokenizer* t = Tokenizer_new();
+    Tokenizer* tokenizer = Tokenizer_new();
 
     size_t expr_len = strlen(expr);
 
     if(!expr_len) {
-        Tokenizer_free(t);
+        Tokenizer_free(tokenizer);
         return;
     }
+    TokenArray token_array;
 
-    TokenArray* token_array = Tokenizer_parse(t, expr, expr_len);
+    if(!Tokenizer_tokenize(tokenizer, expr, expr_len, &token_array)) {
+        highlight_error(expr, expr_len, *tokenizer->error, 2);
+        Tokenizer_free(tokenizer);
+    }
+}
 
 #ifdef DEBUG
-    if(token_array) {
+if(token_array) {
 
-        for(int i = 0; i < token_array->count; ++i) {
-            Token* t = &token_array->tokens[i];
-            Token_print(t);
-        }
-
-        TokenArray_freeMembers(token_array);
-        free(token_array);
-    }
-#endif
-
-    if(t->error) {
-        highlight_error(expr, expr_len, *t->error, 2);
+    for(int i = 0; i < token_array->count; ++i) {
+        Token* t = &token_array->tokens[i];
+        Token_print(t);
     }
 
-    Tokenizer_free(t);
+    TokenArray_freeMembers(token_array);
+    free(token_array);
 }
+#endif
 
 int main() {
     // test_stack();

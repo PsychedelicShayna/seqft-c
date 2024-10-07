@@ -1,8 +1,10 @@
 #ifndef _H_TOKENIZER_
 #define _H_TOKENIZER_
 
-#include "stack.h"
 #include <stdio.h>
+
+#include "stack.h"
+#include "tokent_t.h"
 
 // The three things preventing us from simply making a lookup table is
 //
@@ -29,85 +31,70 @@
 //  we iterate through the expression, its value will be determined, and we
 //  must follow the rules.
 
-typedef enum {
-    TT_NUM      = 0x00000001,
-    OPER_ADD    = 0x00000002, //: +
-    OPER_SUB    = 0x00000004, //: -
-    OPER_DIV    = 0x00000008, //: /
-    OPER_MOD    = 0x00000010, //: %
-    OPER_MUL    = 0x00000020, //: *
-    OPER_POW    = 0x00000040, //: ^
-    OPER_NEGATE = 0x00000080, //: ~  UNARY
-    SYM_COMA    = 0x00010000, //: ,
-    SYM_LPAR    = 0x00100000, //: (
-    SYM_RPAR    = 0x00200000, //: )
-    NULLTOKEN    = 0x02FFFFFF,
-    OPERATORS_UNARY  = OPER_NEGATE,
-    BINARY_OPERATOR_ =
-        OPER_ADD | OPER_SUB | OPER_DIV | OPER_MOD | OPER_MUL | OPER_POW,
-    OPERATOR_TOKENS = OPERATORS_UNARY | BINARY_OPERATOR_,
-    SYMBOL_TOKENS   = SYM_LPAR | SYM_RPAR,
-} TokenType;
+extern tokent_t TokenType_fromStr(const char* str);
 
 typedef struct Token {
-    TokenType type;
-    double    f64;
-    char*     func;
-    char      str[256];
+  tokent_t type;
+  double   f64;
+  char*    func;
+  char     str[256];
 } Token;
 
+extern char* Token_toString(Token* token);
+extern void  Token_print(Token* t);
+extern void  Token_freeMembers(Token* t);
+extern void  Token_free(Token* t);
+
 typedef enum {
-    ACC_NIL = 0x00000000, // Undetermined
-    ACC_DEC = 0x00000001, // Decimal number
-    ACC_BIN = 0x00000002, // Binary number
-    ACC_FPN = 0x00000004, // Floating point number
-    ACC_OCT = 0x00000008, // Octal number
-    ACC_HEX = 0x00000010, // Hexadecimal number
-    ACC_FUN = 0x00000080, // Function
-    ACC_NUM = ACC_FPN | ACC_BIN | ACC_OCT | ACC_DEC | ACC_HEX,
-    ACC_DTZ = 0x00001000, // Control bit set together with ACC_DEC that's set
-                          // to indicate that the number has a trailing zero
-                          // which needs to be resolved into something other
-                          // than ACC_DEC by the next character to be valid.
+  ACC_NIL = 0x00000000, // Undetermined
+  ACC_DEC = 0x00000001, // Decimal number
+  ACC_BIN = 0x00000002, // Binary number
+  ACC_FPN = 0x00000004, // Floating point number
+  ACC_OCT = 0x00000008, // Octal number
+  ACC_HEX = 0x00000010, // Hexadecimal number
+  ACC_SPC = 0x00000020, // Special character, i.e. an operator or symbol.
+  ACC_FUN = 0x00000080, // Function
+  ACC_NUM = ACC_FPN | ACC_BIN | ACC_OCT | ACC_DEC | ACC_HEX,
+  ACC_DTZ = 0x00001000, // Control bit set together with ACC_DEC that's set
+                        // to indicate that the number has a trailing zero
+                        // which needs to be resolved into something other
+                        // than ACC_DEC by the next character to be valid.
 } AccFlag;
 
-typedef struct {
-    Token* tokens;
-    size_t count;
+extern AccFlag assign_accflag(char character, bool allow_hex);
+extern AccFlag AccFlag_fromFormatChar(char character);
+
+typedef struct TokenArray {
+  Token* tokens;
+  size_t count;
 } TokenArray;
 
-extern char* Token_toString(Token* token);
-
-extern void Token_print(Token* t);
-
-extern void Token_freeMembers(Token* t);
-extern void Token_free(Token* t);
-
-extern void TokenArray_freeMembers(TokenArray* t);
-extern void TokenArray_free(TokenArray* t);
+extern TokenArray TokenArray_deepCopy(Token* tokens, size_t count);
+extern void       TokenArray_freeMembers(TokenArray* self);
+extern void       TokenArray_free(TokenArray* self);
 
 typedef struct Tokenizer {
-    TokenType tt_map[256];
-    AccFlag   accfl;
-    Stack*    stacc; // haha, get it?... I'll see myself out.
-    Stack*    tokens;
-    IterErr*  error;
+  AccFlag  accflag;
+  Stack*   char_stack;
+  Stack*   token_stack;
+  IterErr* error;
 } Tokenizer;
 
 // Returns a newly allocated string representing the token. Caller responsible
 // for freeing char* returned from this function.
-extern char* TokenType_toString(TokenType t);
+extern char* TokenType_toString(tokent_t t);
 
-extern Tokenizer*  Tokenizer_new();
-extern TokenArray* Tokenizer_parse(Tokenizer*  t,
-                                   const char* cexpr,
-                                   size_t      expr_len);
-extern BOOL        Tokenizer_parseAccNum(Tokenizer* t);
-extern void        Tokenizer_error(Tokenizer*  t,
-                                   const char* message,
-                                   size_t      expr_index);
-extern void        Tokenizer_clear(Tokenizer* t);
-extern void        Tokenizer_addToken(Tokenizer* t, Token* token);
-extern void        Tokenizer_free(Tokenizer* t);
+extern Tokenizer* Tokenizer_new(void);
+
+extern bool Tokenizer_tokenize(Tokenizer* t, const char* expression, size_t expr_len,
+                              TokenArray* out);
+
+extern bool Tokenizer_parseStackAsNumber(Tokenizer* t, Token* out);
+
+extern void Tokenizer_error(Tokenizer* t, const char* message, size_t expr_index);
+
+extern void Tokenizer_clear(Tokenizer* t);
+extern void Tokenizer_addToken(Tokenizer* t, Token* token);
+extern void Tokenizer_free(Tokenizer* t);
 
 #endif // _H_TOKENIZER_

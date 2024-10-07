@@ -12,18 +12,18 @@ QualifierAlignment: Left
 AllowAllArgumentsOnNextLine: 'true'
 AllowAllConstructorInitializersOnNextLine: 'true'
 AllowAllParametersOfDeclarationOnNextLine: 'true'
-AllowShortBlocksOnASingleLine: 'false'
+AllowShortBlocksOnASingleLine: 'true'
 PackConstructorInitializers: Never
 AllowShortCaseLabelsOnASingleLine: 'false'
-AllowShortFunctionsOnASingleLine: Empty
+AllowShortFunctionsOnASingleLine: 'true'
 AllowShortLambdasOnASingleLine: Inline
 AllowShortLoopsOnASingleLine: 'true'
 AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
 # AlwaysBreakBeforeMultilineStrings: 'false'
 # AlwaysBreakTemplateDeclarations: 'Yes'
-BinPackArguments: 'false'
-BinPackParameters: 'false'
+BinPackArguments: 'true'
+BinPackParameters: 'true'
 # BreakAfterJavaFieldAnnotations: 'true'
 BreakBeforeBinaryOperators: NonAssignment
 BreakBeforeBraces: Custom
@@ -33,11 +33,11 @@ BraceWrapping:
 BreakConstructorInitializers: BeforeColon
 BreakInheritanceList: BeforeColon
 BreakStringLiterals: 'true'
-ColumnLimit: '80'
+ColumnLimit: '200'
 CompactNamespaces: 'false'
 ConstructorInitializerAllOnOneLineOrOnePerLine: 'false'
 ConstructorInitializerIndentWidth: '2'
-ContinuationIndentWidth: '4'
+ContinuationIndentWidth: '2'
 Cpp11BracedListStyle: 'true'
 DerivePointerAlignment: 'false'
 DisableFormat: 'false'
@@ -81,5 +81,5 @@ IncludeCategories:
     Priority: 200
 StatementMacros : [Q_UNUSED, Q_OBJECT, signals, slots]
 Standard: Cpp11
-TabWidth: '4'
+TabWidth: '8'
 UseTab: Never
