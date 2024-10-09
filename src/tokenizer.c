@@ -84,582 +84,588 @@
 // Note to self: implement a hash table.
 
 char* Token_toString(Token* token) {
-    memset(token->str, 0, sizeof(token->str));
+  memset(token->str, 0, sizeof(token->str));
 
-    if(token->type == TT_SY_LPAR && token->func) {
-        memcpy(token->str, token->func, strlen(token->func));
-        token->str[strlen(token->func)] = '(';
-    }
+  if(token->type == TT_SY_LPAR && token->func) {
+    memcpy(token->str, token->func, strlen(token->func));
+    token->str[strlen(token->func)] = '(';
+  }
 
-    else if(token->type == TT_NUMBER) {
-        snprintf(token->str, sizeof(token->str), "%.2f", token->f64);
-    }
+  else if(token->type == TT_NUMBER) {
+    snprintf(token->str, sizeof(token->str), "%.2f", token->f64);
+  }
 
-    else if(token->type == TT_OP_ADD) {
-        token->str[0] = '+';
-    }
+  else if(token->type == TT_OP_ADD) {
+    token->str[0] = '+';
+  } else if(token->type == TT_SY_COMA) {
+    token->str[0] = ',';
+  } else if(token->type == TT_OP_SUB) {
+    token->str[0] = '-';
+  } else if(token->type == TT_OP_DIV) {
+    token->str[0] = '/';
+  } else if(token->type == TT_OP_MOD) {
+    token->str[0] = '%';
+  } else if(token->type == TT_OP_FLOOR) {
+    token->str[0] = '/';
+    token->str[1] = '/';
+  } else if(token->type == TT_OP_MUL) {
+    token->str[0] = '*';
+  } else if(token->type == TT_OP_POW) {
+    token->str[0] = '*';
+    token->str[1] = '*';
+  } else if(token->type == TT_OP_XOR) {
+    token->str[0] = '^';
+  } else if(token->type == TT_OP_AND) {
+    token->str[0] = '&';
+  } else if(token->type == TT_OP_OR) {
+    token->str[0] = '|';
+  } else if(token->type == TT_OP_RSH) {
+    token->str[0] = '>';
+    token->str[1] = '>';
+  } else if(token->type == TT_OP_LSH) {
+    token->str[0] = '<';
+    token->str[1] = '<';
+  } else if(token->type == TT_OP_NEG) {
+    token->str[0] = '~';
+  } else if(token->type == TT_SY_LPAR) {
+    token->str[0] = '(';
+  } else if(token->type == TT_SY_RPAR) {
+    token->str[0] = ')';
+  } else {
+    token->str[0] = '?';
+  }
 
-    else if(token->type == TT_SY_COMA) {
-        token->str[0] = ',';
-    }
-
-    else if(token->type == TT_OP_SUB) {
-        token->str[0] = '-';
-    }
-
-    else if(token->type == TT_OP_DIV) {
-        token->str[0] = '/';
-    }
-
-    else if(token->type == TT_OP_MOD) {
-        token->str[0] = '%';
-    }
-
-    else if(token->type == TT_OP_MUL) {
-        token->str[0] = '*';
-    }
-
-    else if(token->type == TT_OP_POW) {
-        token->str[0] = '^';
-    }
-
-    else if(token->type == TT_OP_NEG) {
-        token->str[0] = '~';
-    }
-
-    else if(token->type == TT_SY_LPAR) {
-        token->str[0] = '(';
-    }
-
-    else if(token->type == TT_SY_RPAR) {
-        token->str[0] = ')';
-    }
-
-    else {
-        token->str[0] = '?';
-    }
-
-    return token->str;
+  return token->str;
 }
 
 void Token_print(Token* t) {
-    char* b = TokenType_toString(t->type);
+  char* b = TokenType_toString(t->type);
 
-    printf("Token: {\n    type: %s,\n    f64: %f,\n    func: %s\n}\n", b, t->f64,
-           t->func ? t->func : "null");
+  printf("Token: {\n    type: %s,\n    f64: %f,\n    func: %s\n}\n",
+         b,
+         t->f64,
+         t->func ? t->func : "null");
 
-    free(b);
+  free(b);
 }
 
 void Token_freeMembers(Token* t) {
-    if(t && t->func) {
-        free(t->func);
-        t->func = 0;
-    }
+  if(t && t->func) {
+    free(t->func);
+    t->func = 0;
+  }
 }
 
 AccFlag assign_accflag(char character, bool allow_hex) {
-    if(isspace(character)) {
-        return ACC_NIL;
-    } else if(allow_hex ? isxdigit(character) : isdigit(character)) {
-        return ACC_DEC | (character == '0' ? ACC_DTZ : 0);
-    } else if(isalpha(character)) {
-        return ACC_FUN;
-    } else {
-        return ACC_SPC;
-    }
+  if(isspace(character)) {
+    return ACC_NIL;
+  } else if(allow_hex ? isxdigit(character) : isdigit(character)) {
+    return ACC_DEC | (character == '0' ? ACC_DTZ : 0);
+  } else if(isalpha(character)) {
+    return ACC_FUN;
+  } else {
+    return ACC_SPC;
+  }
 }
 
 // Creates a new TokenArray from a deep copy of the provided `Token*` array of
 // length `count`. TokenArray members (`Token*` tokens, and its members) is the
 // callers responsibility to free via `TokenArray_freeMembers` / `TokenArray_free.`
 TokenArray TokenArray_deepCopy(Token* tokens, size_t count) {
-    TokenArray token_array;
-    token_array.count  = count;
-    token_array.tokens = csrxmalloc(sizeof(Token) * count);
-    memcpy(token_array.tokens, tokens, sizeof(Token) * count);
+  TokenArray token_array;
+  token_array.count = count;
+  token_array.tokens = csrxmalloc(sizeof(Token) * count);
+  memcpy(token_array.tokens, tokens, sizeof(Token) * count);
 
-    for(size_t i = 0; i < token_array.count; ++i) {
-        Token* token = &token_array.tokens[i];
+  for(size_t i = 0; i < token_array.count; ++i) {
+    Token* token = &token_array.tokens[i];
 
-        if(!token->func)
-            continue;
+    if(!token->func)
+      continue;
 
-        size_t func_size = strlen(token->func) + 1;
-        char*  func_copy = xmalloc(func_size);
-        strlcpy(func_copy, token->func, func_size);
-        token->func = func_copy;
-    }
+    size_t func_size = strlen(token->func);
+    char* func_copy = xmalloc(func_size + 1);
+    strncpy(func_copy, token->func, func_size);
+    func_copy[func_size] = '\0';
+    token->func = func_copy;
+  }
 
-    return token_array;
+  return token_array;
 }
 
 void TokenArray_freeMembers(TokenArray* t) {
-    if(t && t->tokens) {
-        for(size_t i = 0; i < t->count; ++i) { Token_freeMembers(&t->tokens[i]); }
+  if(t && t->tokens) {
+    for(size_t i = 0; i < t->count; ++i) { Token_freeMembers(&t->tokens[i]); }
 
-        free(t->tokens);
-    }
+    free(t->tokens);
+  }
 }
 
 void TokenArray_free(TokenArray* t) {
-    if(t) {
-        TokenArray_freeMembers(t);
-        free(t);
-    }
+  if(t) {
+    TokenArray_freeMembers(t);
+    free(t);
+  }
 }
 
 // Checks if the given digit is valid in the base set by AccFlag.
 bool validate_digit(char digit, AccFlag base) {
-    switch(base) {
-        case ACC_HEX:
-            return isxdigit(digit);
-        case ACC_OCT:
-            return digit >= '0' && digit <= '7';
-        case ACC_BIN:
-            return digit == '0' || digit == '1';
-        default:
-            return isdigit(digit);
-    }
+  switch(base) {
+    case ACC_HEX:
+      return isxdigit(digit);
+    case ACC_OCT:
+      return digit >= '0' && digit <= '7';
+    case ACC_BIN:
+      return digit == '0' || digit == '1';
+    default:
+      return isdigit(digit);
+  }
 }
 
 bool in_operator_charset(char c) {
-    const char* charset = "<|'!>?/@#$%^&*()_+=-[]{}\\:;,`~";
-    return char_in(c, charset);
+  const char* charset = "<|'!>?/@#$%^&*_+=-\\:;,`~";
+  return char_in(c, charset);
 }
 
 char* TokenType_toString(const tokent_t ttype) {
-    char* buffer = csrxmalloc(100);
-    memset(buffer, 0, 100);
+  char* buffer = csrxmalloc(100);
+  memset(buffer, 0, 100);
 
-    switch(ttype) {
-        case TT_NUMBER:
-            sprintf(buffer, "Number");
-            break;
-        case TT_OP_ADD:
-            sprintf(buffer, "Operator [ + ]");
-            break;
-        case TT_OP_SUB:
-            sprintf(buffer, "Operator [ - ]");
-            break;
-        case TT_OP_DIV:
-            sprintf(buffer, "Operator [ / ]");
-            break;
-        case TT_OP_MOD:
-            sprintf(buffer, "Operator [ %% ]");
-            break;
-        case TT_OP_MUL:
-            sprintf(buffer, "Operator [ * ]");
-            break;
-        case TT_OP_POW:
-            sprintf(buffer, "Operator [ ^ ]");
-            break;
-        case TT_OP_NEG:
-            sprintf(buffer, "Operator [ ~ ]");
-            break;
-        case TT_SY_LPAR:
-            sprintf(buffer, "Symbol: (");
-            break;
-        case TT_SY_COMA:
-            sprintf(buffer, "Symbol: ,");
-        case TT_SY_RPAR:
-            sprintf(buffer, "Symbol: )");
-            break;
-        default:
-            sprintf(buffer, "Unknown Token Type: %lb", ttype);
-            break;
-    }
+  switch(ttype) {
+    case TT_NUMBER:
+      sprintf(buffer, "Number");
+      break;
+    case TT_OP_ADD:
+      sprintf(buffer, "Operator [ + ]");
+      break;
+    case TT_OP_SUB:
+      sprintf(buffer, "Operator [ - ]");
+      break;
+    case TT_OP_DIV:
+      sprintf(buffer, "Operator [ / ]");
+      break;
+    case TT_OP_MOD:
+      sprintf(buffer, "Operator [ %% ]");
+      break;
+    case TT_OP_MUL:
+      sprintf(buffer, "Operator [ * ]");
+      break;
+    case TT_OP_XOR:
+      sprintf(buffer, "Operator [ ^ ]");
+      break;
+    case TT_OP_POW:
+      sprintf(buffer, "Operator [ ** ]");
+      break;
+    case TT_OP_NEG:
+      sprintf(buffer, "Operator [ ~ ]");
+      break;
+    case TT_SY_LPAR:
+      sprintf(buffer, "Symbol: (");
+      break;
+    case TT_SY_COMA:
+      sprintf(buffer, "Symbol: ,");
+      break;
+    case TT_SY_RPAR:
+      sprintf(buffer, "Symbol: )");
+      break;
+    case TT_OP_FLOOR:
+      sprintf(buffer, "Ooperator [ // ]");
+      break;
+    case TT_OP_AND:
+      sprintf(buffer, "Ooperator [ & ]");
+      break;
+    case TT_OP_OR:
+      sprintf(buffer, "Ooperator [ | ]");
+      break;
+    case TT_OP_LSH:
+      sprintf(buffer, "Ooperator [ << ]");
+      break;
+    case TT_OP_RSH:
+      sprintf(buffer, "Ooperator [ >> ]");
+      break;
+    default:
+      sprintf(buffer, "Unknown Token Type: %lb", ttype);
+      break;
+  }
 
-    return buffer;
+  return buffer;
 }
 
 Tokenizer* Tokenizer_new() {
-    Tokenizer* t = xmalloc(sizeof(Tokenizer));
-    memset(t, 0, sizeof(Tokenizer));
+  Tokenizer* t = xmalloc(sizeof(Tokenizer));
+  memset(t, 0, sizeof(Tokenizer));
 
-    t->token_stack = Stack_withCapacity(sizeof(Token), 100);
-    t->char_stack  = Stack_withCapacity(sizeof(char), 100);
+  t->token_stack = Stack_withCapacity(sizeof(Token), 100);
+  t->char_stack = Stack_withCapacity(sizeof(char), 100);
 
-    Stack_setDeallocator(t->token_stack, (void (*)(void*))&Token_freeMembers);
-    Stack_setDefaultAlloc(t->token_stack, 100);
-    Stack_setDefaultAlloc(t->char_stack, 100);
+  Stack_setDeallocator(t->token_stack, (void (*)(void*))&Token_freeMembers);
+  Stack_setDefaultAlloc(t->token_stack, 100);
+  Stack_setDefaultAlloc(t->char_stack, 100);
 
-    t->accflag = ACC_NIL;
-    t->error   = 0;
+  t->accflag = ACC_NIL;
+  t->error = 0;
 
-    return t;
+  return t;
 }
 
 void Tokenizer_free(Tokenizer* t) {
-    if(t) {
-        Stack_free(t->token_stack);
-        Stack_free(t->char_stack);
-        if(t->error) {
-            free(t->error);
-            t->error = 0;
-        }
-        free(t);
+  if(t) {
+    Stack_free(t->token_stack);
+    Stack_free(t->char_stack);
+    if(t->error) {
+      free(t->error);
+      t->error = 0;
     }
+    free(t);
+  }
 }
 
 void Tokenizer_addToken(Tokenizer* t, Token* token) {
-    Stack_pushFrom(t->token_stack, token);
-    Stack_clear(t->char_stack);
+  Stack_pushFrom(t->token_stack, token);
+  Stack_clear(t->char_stack);
 
 #ifdef DEBUG
-    {
-        char* token_str = TokenType_toString(token->type);
+  {
+    char* token_str = TokenType_toString(token->type);
 
-        if(token_str) {
-            printf("Added token to stack %s\n", token_str);
-            free(token_str);
-        }
+    if(token_str) {
+      printf("Added token to stack %s\n", token_str);
+      free(token_str);
     }
+  }
 #endif
 
-    t->accflag = ACC_NIL;
+  t->accflag = ACC_NIL;
 }
 
 void Tokenizer_clear(Tokenizer* t) {
-    Stack_reClear(t->token_stack);
-    Stack_reClear(t->char_stack);
+  Stack_reClear(t->token_stack);
+  Stack_reClear(t->char_stack);
 
-    t->accflag = ACC_NIL;
+  t->accflag = ACC_NIL;
 
-    if(t->error) {
-        free(t->error);
-        t->error = 0;
-    }
+  if(t->error) {
+    free(t->error);
+    t->error = 0;
+  }
 }
 
 void Tokenizer_error(Tokenizer* t, const char* message, size_t expr_index) {
-    IterErr error = {.message = message, .index = expr_index};
+  IterErr error = {.message = message, .index = expr_index};
 
-    if(t->error) {
-        free(t->error);
-        t->error = 0;
-    }
+  if(t->error) {
+    free(t->error);
+    t->error = 0;
+  }
 
-    t->error    = xmalloc(sizeof(IterErr));
-    *(t->error) = error;
+  t->error = xmalloc(sizeof(IterErr));
+  *(t->error) = error;
 }
 
 // Returns true on success.
 bool Tokenizer_parseStackAsNumber(Tokenizer* self, Token* out) {
-    if(!out) {
-        Tokenizer_error(self, "Null Token* out parameter specified.", 0);
-        return false;
+  if(!out) {
+    Tokenizer_error(self, "Null Token* out parameter specified.", 0);
+    return false;
+  }
+
+  Token token = {.type = TT_NUMBER, .f64 = 0, .func = 0};
+
+  char* base_ptr = Stack_getBase(self->char_stack);
+  size_t count = Stack_getCount(self->char_stack);
+
+  if(!count) {
+    Tokenizer_error(self, "Not enough digits to construct a number.", count);
+    return false;
+  }
+
+  char buffer[count + 1]; // Nullbyte
+  memset(buffer, 0, count + 1);
+
+  char* begin = base_ptr;
+  size_t len = count;
+
+  // Futureproof against me adding any control bits in the future by
+  // filtering out anything that isn't ACC_HEX, ACC_BIN, or ACC_OCT.
+  int custom_base
+    = (self->accflag & (~(self->accflag & ~(ACC_HEX | ACC_OCT | ACC_BIN))));
+
+  bool is_float = self->accflag & ACC_FPN;
+
+  int strtoll_base = custom_base ? custom_base : 10;
+
+  if(custom_base || is_float) {
+    if(count < 3) {
+      Tokenizer_error(self, "Incomplete number.", count);
+
+      return false;
     }
 
-    Token token = {.type = TT_NUMBER, .f64 = 0, .func = 0};
-
-    char*  base_ptr = Stack_getBase(self->char_stack);
-    size_t count    = Stack_getCount(self->char_stack);
-
-    if(!count) {
-        Tokenizer_error(self, "Not enough digits to construct a number.", count);
-        return false;
+    // Exclude base specifier (0x, 0b, 0o, etc)
+    if(custom_base) {
+      begin += 2;
+      len -= 2;
     }
+  }
 
-    char buffer[count + 1]; // Nullbyte
-    memset(buffer, 0, count + 1);
+  memcpy(buffer, begin, len);
 
-    char*  begin = base_ptr;
-    size_t len   = count;
+  if(is_float) {
+    token.f64 = atof(buffer);
+  } else {
+    token.f64 = strtoll(buffer, 0, strtoll_base);
+  }
 
-    // Futureproof against me adding any control bits in the future by
-    // filtering out anything that isn't ACC_HEX, ACC_BIN, or ACC_OCT.
-    int custom_base =
-      (self->accflag & (~(self->accflag & ~(ACC_HEX | ACC_OCT | ACC_BIN))));
-
-    bool is_float = self->accflag & ACC_FPN;
-
-    int strtoll_base = custom_base ? custom_base : 10;
-
-    if(custom_base || is_float) {
-        if(count < 3) {
-            Tokenizer_error(self, "Incomplete number.", count);
-
-            return false;
-        }
-
-        // Exclude base specifier (0x, 0b, 0o, etc)
-        if(custom_base) {
-            begin += 2;
-            len -= 2;
-        }
-    }
-
-    memcpy(buffer, begin, len);
-
-    if(is_float) {
-        token.f64 = atof(buffer);
-    } else {
-        token.f64 = strtoll(buffer, 0, strtoll_base);
-    }
-
-    *out = token;
-    return true;
+  *out = token;
+  return true;
 }
 
 AccFlag AccFlag_fromFormatChar(char character) {
-    switch(character) {
-        case 'x':
-            return ACC_HEX;
-        case 'b':
-            return ACC_BIN;
-        case 'o':
-            return ACC_OCT;
-        case '.':
-            return ACC_FPN;
-        default:
-            return ACC_NIL;
-    }
+  switch(character) {
+    case 'x':
+      return ACC_HEX;
+    case 'b':
+      return ACC_BIN;
+    case 'o':
+      return ACC_OCT;
+    case '.':
+      return ACC_FPN;
+    default:
+      return ACC_NIL;
+  }
 }
 
 // Returns true on success, false on failure. TokenArray is written to out.
-bool Tokenizer_tokenize(Tokenizer* self, const char* expression, size_t length,
-                       TokenArray* out) {
+bool Tokenizer_tokenize(Tokenizer* self,
+                        const char* expression,
+                        size_t length,
+                        TokenArray* out) {
 
-    Tokenizer_clear(self);
+  Tokenizer_clear(self);
 
-    for(size_t i = 0; i < length; ++i) {
-        char character = expression[i];
+  for(size_t i = 0; i < length; ++i) {
+    char character = expression[i];
 
-        if(isspace(character)) {
-            continue;
-        }
-
-        // ---------------------------------------------------------------
-        // We start by determining what we're accumulating.
-        // ---------------------------------------------------------------
-
-        if(self->accflag == ACC_NIL) {
-            AccFlag flag = assign_accflag(character, false);
-
-            if(flag == ACC_NIL) {
-                Tokenizer_error(self, "Could not classify character.", i);
-                return false;
-            }
-
-            self->accflag = flag;
-            continue;
-        }
-
-        // if(self->accfl == ACC_SPC && (isalpha(character) ||
-        // isxdigit(character))) {
-        //   Stack_pushFrom(self->char_stack, &(char) {'\0'});
-        //   const char* characters = Stack_getBase(self->char_stack);
-        //   tokent_t    token_type = str_to_token_t(characters);
-        // }
-
-        // Then we check if the character fits the rules of what's being
-        // accumulated. If it doesn't, then it probably marks the start of the next
-        // token, and so the character stack should be parsed into a Token of the
-        // accumulation type.
-
-        // It could be the next digit of a number.
-        if(self->accflag & ACC_NUM) {
-            bool valid_digit = validate_digit(character, self->accflag);
-
-            if(valid_digit && self->accflag & ACC_DTZ) {
-                Tokenizer_error(self,
-                                "Leading zero in number is illegal in this context.", 0);
-                return false;
-            }
-
-            if(valid_digit) {
-                Stack_pushFrom(self->char_stack, &character);
-            }
-
-            // Perhaps it's a period '.' and the number hasn't been marked as a float
-            // yet?
-            else if(self->accflag == ACC_DEC && character == '.') {
-                self->accflag = ACC_FPN;
-                Stack_pushFrom(self->char_stack, &character);
-            }
-
-            // Perhaps it's the second character, it's a format specifier?
-            else if(self->accflag == ACC_DEC && Stack_getCount(self->char_stack) == 1) {
-                AccFlag new_flag = AccFlag_fromFormatChar(character);
-
-                if(new_flag != ACC_NIL) {
-                    self->accflag = new_flag;
-                }
-
-                Stack_pushFrom(self->char_stack, &character);
-
-            }
-
-            // Nope, it's just not valid. It's probably the start of the next token.
-            // Try to parse the accumulated characters as a number and reset the accflag.
-            else {
-                Token number_possibly;
-                Stack_push(self->char_stack, '\0'); // Ensure null termination.
-
-                // Ok, the number is valid.
-                if(Tokenizer_parseStackAsNumber(self, &number_possibly)) {
-                    Stack_pushFrom(self->token_stack, &number_possibly);
-                    Stack_clear(self->char_stack);
-                    self->accflag = ACC_NIL;
-
-                    Stack_pushFrom(self->char_stack, &character);
-                    AccFlag new_flag = assign_accflag(character, false);
-
-                    if(new_flag != ACC_NIL) {
-                        self->accflag = new_flag;
-                    } else {
-                        Tokenizer_error(
-                          self, "Cannot determine the type of token for character.", i);
-                        return false;
-                    }
-                } else {
-                    Tokenizer_error(self, "Cannot parse number; invalid expression", i);
-                    return false;
-                }
-            }
-        }
-
-        // It could be the next letter in a function name.
-        else if(self->accflag & ACC_FUN) {
-            // Since the accflag has already been set to ACC_FUN, we know that the first
-            // character must have been alphabetic, so subsequent characters are allowed
-            // to be alphanumeric.
-
-            bool valid_character = isalnum(character);
-
-            if(valid_character) {
-                Stack_pushFrom(self->char_stack, &character);
-                AccFlag new_flag = assign_accflag(character, false);
-                if(new_flag != ACC_NIL) {
-                    self->accflag = new_flag;
-                } else {
-                    Tokenizer_error(
-                      self, "Cannot determine the type of token for character.", i);
-                    return false;
-                }
-                continue;
-            }
-
-            // A function reaches its end when a open parenthesis is encountered, at
-            // which point, an open parenthesis token with the function name copied
-            // into it is pushed to the token stack.
-            else if(character == '(') {
-                Token token = {.type = TT_SY_LPAR, .f64 = 0, .func = 0};
-                Stack_push(self->char_stack, '\0'); // Ensure null termination.
-
-                const char* function_name = Stack_getBase(self->char_stack);
-                size_t      fn_length     = strlen(function_name);
-
-                token.func            = csrxmalloc(fn_length + 1);
-                token.func[fn_length] = '\0';
-
-                strlcpy(token.func, function_name, fn_length);
-
-                Stack_clear(self->char_stack);
-                self->accflag = ACC_NIL;
-
-                Stack_pushFrom(self->token_stack, &token);
-            } else {
-                Tokenizer_error(self, "Invalid character in function name.", i);
-                return false;
-            }
-        }
-
-        // It could be the next character of an operator or symbol.
-        else if(self->accflag & ACC_SPC) {
-            bool valid_opchar = in_operator_charset(character);
-
-            // We're accumulating a special character, and this character is
-            // part of the valid character set, so simply push and continue;
-            if(valid_opchar) {
-                Stack_pushFrom(self->char_stack, &valid_opchar);
-                continue;
-            }
-
-            // Otherwise, we've hit the end of the operator or symbol, and need to parse
-            // the char_stack as an operator, and push it to the token stack, if valid.
-            else {
-                Stack_push(self->char_stack, '\0'); // Ensure null termination.
-                const char* operator_str  = Stack_getBase(self->char_stack);
-                tokent_t    operator_type = str_to_token_t(operator_str);
-
-                Token token;
-
-                if(operator_type & (TT_OPERATOR | TT_SYMBOL)) {
-                    token.type = operator_type;
-                    Stack_pushFrom(self->token_stack, &token);
-                    Stack_clear(self->char_stack);
-                    self->accflag = ACC_NIL;
-
-                    AccFlag new_flag = assign_accflag(character, false);
-                    if(new_flag != ACC_NIL) {
-                        self->accflag = new_flag;
-                        Stack_pushFrom(self->char_stack, &character);
-                    } else {
-                        Tokenizer_error(
-                          self, "Cannot determine the type of token for character.", i);
-                        return false;
-                    }
-                } else {
-                    Tokenizer_error(self, "Cannot parse operator; invalid expression.",
-                                    i);
-                    return false;
-                }
-            }
-        }
-
-        // It's straight up invalid / not recognized..
-        else {
-            Tokenizer_error(self, "Invalid expression.", i);
-            return false;
-        }
+    if(isspace(character)) {
+      continue;
     }
 
-    // Handle remaining elements in the char stack.
-    // ----------------------------------------------------------------------------------
+    AccFlag new_flag = assign_accflag(character, false);
 
-    if(!Stack_empty(self->char_stack)) {
-        Token token;
+    // ---------------------------------------------------------------
+    // We start by determining what we're accumulating.
+    // ---------------------------------------------------------------
 
-        if(self->accflag & ACC_NUM) {
-            if(Tokenizer_parseStackAsNumber(self, &token)) {
-                Stack_pushFrom(self->token_stack, &token);
-                self->accflag = ACC_NIL;
-            } else {
-                Tokenizer_error(self, "Cannot parse number; invalid expression", length);
-                return false;
-            }
-        } else if(self->accflag & ACC_FUN) {
-            Tokenizer_error(self, "Function with no opening parenthesis.", length);
-            return false;
-        } else if(self->accflag & ACC_SPC) {
-            Stack_push(self->char_stack, '\0'); // Ensure null termination.
-            const char* operator_str  = Stack_getBase(self->char_stack);
-            tokent_t    operator_type = str_to_token_t(operator_str);
+    if(self->accflag == ACC_NIL) {
+      AccFlag flag = assign_accflag(character, false);
 
-            if(operator_type & (TT_OPERATOR | TT_SYMBOL)) {
-                token.type = operator_type;
-                Stack_pushFrom(self->token_stack, &token);
-                Stack_clear(self->char_stack);
-                self->accflag = ACC_NIL;
-            } else {
-                Tokenizer_error(self, "Cannot parse operator; invalid expression.",
-                                length);
-                return false;
-            }
-        }
-
-        TokenArray token_array = TokenArray_deepCopy(Stack_getBase(self->token_stack),
-                                                     Stack_getCount(self->token_stack));
-
-        Stack_reClear(self->token_stack);
-        Stack_reClear(self->char_stack);
-
-        *out = token_array;
-
+      if(flag == ACC_NIL) {
+        Tokenizer_error(self, "Could not classify character.", i);
         return false;
+      }
+
+      self->accflag = flag;
+      Stack_pushFrom(self->char_stack, &character);
+      continue;
     }
 
-    return true;
+    // if(self->accfl == ACC_SPC && (isalpha(character) ||
+    // isxdigit(character))) {
+    //   Stack_pushFrom(self->char_stack, &(char) {'\0'});
+    //   const char* characters = Stack_getBase(self->char_stack);
+    //   tokent_t    token_type = str_to_token_t(characters);
+    // }
+
+    // Then we check if the character fits the rules of what's being
+    // accumulated. If it doesn't, then it probably marks the start of the next
+    // token, and so the character stack should be parsed into a Token of the
+    // accumulation type.
+
+    // It could be the next digit of a number.
+    if(self->accflag & ACC_NUM) {
+      bool valid_digit = validate_digit(character, self->accflag);
+
+      if(valid_digit && self->accflag & ACC_DTZ) {
+        Tokenizer_error(self, "Leading zero in number is illegal in this context.", 0);
+        return false;
+      }
+
+      if(valid_digit) {
+        Stack_pushFrom(self->char_stack, &character);
+        continue;
+      }
+
+      // Perhaps it's a period '.' and the number hasn't been marked as a float yet?
+      if(self->accflag == ACC_DEC && character == '.') {
+        self->accflag = ACC_FPN;
+        Stack_pushFrom(self->char_stack, &character);
+        continue;
+      }
+
+      size_t stack_count = Stack_getCount(self->char_stack);
+
+      // Perhaps it's the second character, it's a format specifier?
+      if(self->accflag & ACC_DEC && stack_count == 1 && char_in(character, "xob.")) {
+        AccFlag format_flag = AccFlag_fromFormatChar(character);
+
+        if(format_flag == ACC_NIL) {
+          Tokenizer_error(self, "Cannot determine the base format specifier.", i);
+          return false;
+        }
+
+        self->accflag = format_flag;
+        Stack_pushFrom(self->char_stack, &character);
+        continue;
+      }
+
+      if(new_flag == ACC_NIL) {
+        Tokenizer_error(self, "Cannot determine the type of token for character.", i);
+        return false;
+      }
+
+      // Nope, it's just not valid. It's probably the start of the next token.
+      // Try to parse the accumulated characters as a number and reset the accflag.
+      Token number_possibly;
+      Stack_push(self->char_stack, '\0'); // Ensure null termination.
+
+      if(!Tokenizer_parseStackAsNumber(self, &number_possibly)) {
+        Tokenizer_error(self, "Cannot parse number; invalid expression", i);
+        return false;
+      }
+
+      // Ok, the number is valid.
+      Stack_pushFrom(self->token_stack, &number_possibly);
+      Stack_clear(self->char_stack);
+      Stack_pushFrom(self->char_stack, &character);
+      self->accflag = new_flag;
+      continue;
+    }
+
+    // It could be the next letter in a function name.
+    else if(self->accflag & ACC_FUN) {
+      // Since the accflag has already been set to ACC_FUN, we know that the first
+      // character must have been alphabetic, so subsequent characters are allowed
+      // to be alphanumeric.
+
+      bool valid_character = isalnum(character);
+
+      if(valid_character) {
+        Stack_pushFrom(self->char_stack, &character);
+        continue;
+      }
+
+      // A function reaches its end when a open parenthesis is encountered, at
+      // which point, an open parenthesis token with the function name copied
+      // into it is pushed to the token stack.
+      else if(character == '(') {
+        Token token = {.type = TT_SY_LPAR, .f64 = 0, .func = 0};
+        Stack_push(self->char_stack, '\0'); // Ensure null termination.
+
+        const char* function_name = Stack_getBase(self->char_stack);
+        size_t fn_length = strlen(function_name);
+
+        token.func = csrxmalloc(fn_length + 1);
+        strncpy(token.func, function_name, fn_length);
+        token.func[fn_length] = '\0';
+
+        Stack_clear(self->char_stack);
+
+        // In this case we don't want to push the character onto the char stack,
+        // since it's part of the token we've just pusheed to the token stack.
+        // We also set accflag to NIL since the flag for this character does
+        // not count as a new accumulation.
+        Stack_pushFrom(self->token_stack, &token);
+        self->accflag = ACC_NIL;
+
+        continue;
+      } else {
+        Tokenizer_error(self, "Invalid character in function name.", i);
+        return false;
+      }
+    }
+
+    // It could be the next character of an operator or symbol.
+    else if(self->accflag & ACC_SPC) {
+      bool valid_opchar = in_operator_charset(character);
+
+      // We're accumulating a special character, and this character is
+      // part of the valid character set, so simply push and continue;
+      if(valid_opchar) {
+        Stack_pushFrom(self->char_stack, &character);
+        continue;
+      }
+
+      // Otherwise, we've hit the end of the operator or symbol, and need to
+      // parse the char_stack as an operator, and push it to the token stack, if
+      // valid.
+      else {
+        Token token = {.f64 = 0, .str = {0}, .func = 0, .type = 0};
+
+        Stack_push(self->char_stack, '\0'); // Ensure null termination.
+        const char* operator_str = Stack_getBase(self->char_stack);
+        tokent_t operator_type = str_to_token_t(operator_str);
+
+        if(!(operator_type & (TT_OPERATOR | TT_SYMBOL))) {
+          Tokenizer_error(self, "Cannot parse operator; invalid expression.", i);
+          return false;
+        }
+
+        token.type = operator_type;
+        Stack_pushFrom(self->token_stack, &token);
+        Stack_clear(self->char_stack);
+        Stack_pushFrom(self->char_stack, &character);
+        self->accflag = new_flag;
+      }
+    }
+
+    // It's straight up invalid / not recognized..
+    else {
+      Tokenizer_error(self, "Invalid expression.", i);
+      return false;
+    }
+  }
+
+  // Handle remaining elements in the char stack.
+  // ----------------------------------------------------------------------------------
+
+  if(!Stack_empty(self->char_stack)) {
+    Token token;
+
+    if(self->accflag & ACC_NUM) {
+      if(Tokenizer_parseStackAsNumber(self, &token)) {
+        Stack_pushFrom(self->token_stack, &token);
+        self->accflag = ACC_NIL;
+      } else {
+        Tokenizer_error(self, "Cannot parse number; invalid expression", length);
+        return false;
+      }
+    } else if(self->accflag == ACC_FUN) {
+      Tokenizer_error(self, "Function with no opening parenthesis.", length);
+      return false;
+    } else if(self->accflag == ACC_SPC) {
+      Stack_push(self->char_stack, '\0'); // Ensure null termination.
+      const char* operator_str = Stack_getBase(self->char_stack);
+      tokent_t operator_type = str_to_token_t(operator_str);
+
+      if(operator_type & (TT_OPERATOR | TT_SYMBOL)) {
+        token.type = operator_type;
+        Stack_pushFrom(self->token_stack, &token);
+        Stack_clear(self->char_stack);
+        self->accflag = ACC_NIL;
+      } else {
+        Tokenizer_error(self, "Cannot parse operator; invalid expression.", length);
+        return false;
+      }
+    }
+  }
+
+  TokenArray token_array = TokenArray_deepCopy(Stack_getBase(self->token_stack),
+                                               Stack_getCount(self->token_stack));
+
+  *out = token_array;
+
+  Stack_reClear(self->token_stack);
+  Stack_reClear(self->char_stack);
+
+  return true;
 }

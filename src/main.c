@@ -8,6 +8,27 @@
 #include "stack.h"
 #include "tokenizer.h"
 
+char* read_stdin_pipe() {
+    size_t size = 4096;
+    char* buffer = malloc(size + 1);
+    char* dest = buffer;
+
+    size_t res = 0;
+    while(true) {
+        res = fread(dest, 1, 4096, stdin);
+        if(!res)
+            break;
+
+        if(res == 4096) {
+            size += 4096;
+            buffer = realloc(buffer, size + 1);
+            dest = buffer - 4096;
+        }
+    }
+
+    buffer[size] = '\0';
+    return buffer;
+}
 void test_stack() {
     Stack* s = Stack_withCapacity(4, 100);
     Stack_print(s);
@@ -26,8 +47,8 @@ void test_stack() {
     printdbg("Pushed: %d\n", *(uint32_t*)Stack_getHead(s));
     Stack_print(s);
 
-    uint32_t  _y = 0;
-    uint32_t* y  = &_y;
+    uint32_t _y = 0;
+    uint32_t* y = &_y;
 
     Stack_print(s);
     Stack_rePop(s, &_y);
@@ -50,7 +71,7 @@ void highlight_error(const char* expr, size_t expr_len, IterErr error, size_t in
     filter_whitespace(expr, expr_len, stripped);
 
     const size_t bufsize = indent + expr_len + strlen(error.message) + 1;
-    char         padding[bufsize];
+    char padding[bufsize];
     memset(padding, 0, bufsize);
 
     memset(padding, ' ', indent);
@@ -70,7 +91,7 @@ void highlight_error(const char* expr, size_t expr_len, IterErr error, size_t in
 
 void test_sft(const char* expr) {
     Tokenizer* tokenizer = Tokenizer_new();
-    Sft*       sft       = Sft_new();
+    Sft* sft = Sft_new();
 
     size_t expr_len = strlen(expr);
 
@@ -87,7 +108,10 @@ void test_sft(const char* expr) {
     }
 
     if(tokenizer->error) {
-        fprintf(stderr, "Error in tokenizer  %s, idx %zu", tokenizer->error->message, tokenizer->error->index);
+        fprintf(stderr,
+                "Error in tokenizer  %s, idx %zu",
+                tokenizer->error->message,
+                tokenizer->error->index);
         return;
     }
 
@@ -102,26 +126,24 @@ void test_sft(const char* expr) {
     // return;
 
 #ifdef DEBUG
-    if(token_array) {
-
-        for(int i = 0; i < token_array->count; ++i) {
-            Token* t = &token_array->tokens[i];
-            Token_print(t);
-            if(t->func) {
-                printf("Has func: %s\n", t->func);
-            }
+    for(size_t i = 0; i < token_array.count; ++i) {
+        Token* t = &token_array.tokens[i];
+        Token_print(t);
+        if(t->func) {
+            printf("Has func: %s\n", t->func);
         }
-
-        // TokenArray_freeMembers(token_array);
-        // free(token_array);
     }
+
+    // TokenArray_freeMembers(token_array);
+    // free(token_array);
 #endif
 
     double result = 0;
     SftError* error = Sft_evalTokens(sft, &token_array, &result);
 
     if(error) {
-        printf("%s", error->message);
+        perror(error->message);
+        abort();
     } else {
         printf("Result: %f\n", result);
     }
@@ -140,26 +162,25 @@ void test_tokenizer(const char* expr) {
     }
     TokenArray token_array;
 
+#ifdef DEBUG
+
+    for(size_t i = 0; i < token_array.count; ++i) {
+        Token* t = &token_array.tokens[i];
+        Token_print(t);
+    }
+#endif
+
     if(!Tokenizer_tokenize(tokenizer, expr, expr_len, &token_array)) {
         highlight_error(expr, expr_len, *tokenizer->error, 2);
         Tokenizer_free(tokenizer);
     }
 }
 
-#ifdef DEBUG
-if(token_array) {
-
-    for(int i = 0; i < token_array->count; ++i) {
-        Token* t = &token_array->tokens[i];
-        Token_print(t);
-    }
-
-    TokenArray_freeMembers(token_array);
-    free(token_array);
-}
-#endif
-
 int main() {
+    // const char* expr = read_stdin_pipe();
+    // test_sft(expr);
+    // return 00;
+
     // test_stack();
 
     // for(int i=0;i<100000000;++i) {
@@ -183,7 +204,7 @@ int main() {
     // }
 
     while(TRUE) {
-        char* expr = read_input("Enter Expression: ");
+        char* expr = read_input("(Debug):  ");
         test_sft(expr);
     }
 }

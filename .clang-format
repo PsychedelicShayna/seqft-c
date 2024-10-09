@@ -2,8 +2,8 @@ BasedOnStyle: Mozilla
 AccessModifierOffset: '-4'
 AlignAfterOpenBracket: Align
 AlignConsecutiveMacros: 'true'
-AlignConsecutiveAssignments: 'true'
-AlignConsecutiveDeclarations: 'true'
+AlignConsecutiveAssignments: 'false'
+AlignConsecutiveDeclarations: 'false'
 AlignEscapedNewlines: Left
 AlignOperands: 'true'
 AlignTrailingComments: 'true'
@@ -22,10 +22,10 @@ AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
 # AlwaysBreakBeforeMultilineStrings: 'false'
 # AlwaysBreakTemplateDeclarations: 'Yes'
-BinPackArguments: 'true'
-BinPackParameters: 'true'
+BinPackArguments: 'false'
+BinPackParameters: 'false'
 # BreakAfterJavaFieldAnnotations: 'true'
-BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeBinaryOperators: 'true'
 BreakBeforeBraces: Custom
 BraceWrapping:
   AfterFunction: 'false'
@@ -33,7 +33,7 @@ BraceWrapping:
 BreakConstructorInitializers: BeforeColon
 BreakInheritanceList: BeforeColon
 BreakStringLiterals: 'true'
-ColumnLimit: '200'
+ColumnLimit: '89'
 CompactNamespaces: 'false'
 ConstructorInitializerAllOnOneLineOrOnePerLine: 'false'
 ConstructorInitializerIndentWidth: '2'
@@ -45,7 +45,7 @@ FixNamespaceComments: 'true'
 IncludeBlocks: Preserve
 IndentCaseLabels: 'true'
 IndentPPDirectives: BeforeHash
-IndentWidth: '4'
+IndentWidth: '2'
 IndentWrappedFunctionNames: 'true'
 KeepEmptyLinesAtTheStartOfBlocks: 'true'
 Language: Cpp

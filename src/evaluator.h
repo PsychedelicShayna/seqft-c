@@ -7,7 +7,7 @@
 #include "visualizer.h"
 
 typedef struct Function {
-    char*  name;
+    const char*  name;
     size_t args_req;
     double (*ptr)(double nums[], size_t len);
 } Function;
@@ -31,7 +31,7 @@ typedef struct Sft {
     SftError error;
 } Sft;
 
-extern Function FN_LOOKUP[2];
+extern const Function FN_LOOKUP[2];
 
 extern Sft* Sft_new(void);
 

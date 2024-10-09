@@ -2,8 +2,6 @@
 #include "evaluator.h"
 #include <unistd.h>
 
-#define DEBUG
-
 void Sft_draw(Sft* sft) {
 #ifdef DEBUG
     system("clear");
