@@ -4,8 +4,6 @@
 # and output to ./out/debug, or else set the build type to Release
 # and output to ./out/release.
 
-mkdir -p ./out/debug/
-mkdir -p ./out/release/
 
 if [ "$1" == "release" ]; then
   cmake -DCMAKE_BUILD_TYPE=Release -G Ninja -B ./out/release
@@ -15,10 +13,13 @@ if [ "$1" == "release" ]; then
 fi
 
 if [ "$1" == "clean" ]; then
-  rm -rf ./out/**/*
+  rm -rf ./out/*
   rm compile_commands.json
   exit 0
 fi
+
+mkdir -p ./out/debug/
+mkdir -p ./out/release/
 
 # Debug build by default.
 cmake -DCMAKE_BUILD_TYPE=Debug -G Ninja -B ./out/debug
