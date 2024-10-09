@@ -1,10 +1,18 @@
+// > Hello Copilot
+// < Hi, I am your AI pair programmer, how can I help you today?
+// > I have a bug wherre I don't know how a closing parenthesis is ending up on the
+// operator stack, and being treated like a binary operator. < I see, let me take a look
+// at the code.
+//
+//
+
 #include "evaluator.h"
 #include "common.h"
 #include "stack.h"
-#include "tokenizer.h"
 #include "tokent_t.h"
 
 #include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -104,6 +112,8 @@ double eval_binary_op(tokent_t operator_type, double num1, double num2) {
 double eval_unary_op(tokent_t operator_type, double num) {
   if(operator_type & TT_OP_NEG) {
     return -(num);
+  } else if(operator_type & TT_OP_NOT) {
+    return (double)(~(uint64_t)num);
   }
 
   return 0xDEADC0DE;
@@ -115,8 +125,9 @@ SftError* eval_x_is_operator(Sft* self, Token token) {
   Stack* number_cellar = self->number_stack;
 
   while(1) {
-    if(Stack_empty(operator_cellar))
+    if(Stack_empty(operator_cellar)) {
       break;
+    }
 
     Token* top = Stack_getHead(operator_cellar);
 
@@ -125,6 +136,10 @@ SftError* eval_x_is_operator(Sft* self, Token token) {
 
     if(top->type < token.type)
       break;
+
+    char* token_str = token_t_to_new_str(token.type);
+    printf("The type about to be popped is is %s\n", token_str);
+    free(token_str);
 
     Token* operator_token = Stack_pop(operator_cellar);
     DEBUGBLOCK({ Sft_draw(self); });
@@ -140,11 +155,15 @@ SftError* eval_x_is_operator(Sft* self, Token token) {
       DEBUGBLOCK({ Sft_draw(self); });
 
       if(!num2 || !num1) {
+        char* token_str = token_t_to_new_str(operator_token->type);
+
         sprintf(self->error.message,
                 "Invalid expression, missing '%s' for binary operator"
                 "'%s'\n\n",
                 num1 ? "num1" : "num2",
-                Token_toString(operator_token));
+                token_str);
+
+        free(token_str);
 
         return &self->error;
       }
@@ -158,11 +177,15 @@ SftError* eval_x_is_operator(Sft* self, Token token) {
       double* num = Stack_pop(number_cellar);
 
       if(!num) {
+        char* token_str = token_t_to_new_str(operator_token->type);
+
         sprintf(self->error.message,
                 "Invalid expression, missing '%s' for unary operator "
                 "'%s'\n\n",
                 "num",
-                Token_toString(operator_token));
+                token_str);
+
+        free(token_str);
 
         return &self->error;
       }
@@ -319,11 +342,15 @@ SftError* eval_x_is_close_paren(Sft* self) {
       DEBUGBLOCK({ Sft_draw(self); });
 
       if(!num2 || !num1) {
+        char* token_str = token_t_to_new_str(operator_token->type);
+
         sprintf(self->error.message,
                 "Invalid expression, missing '%s' for binary operator "
                 "'%s'\n\n",
                 num1 ? "num1" : "num2",
-                Token_toString(operator_token));
+                token_str);
+
+        free(token_str);
 
         return &self->error;
       }
@@ -337,11 +364,15 @@ SftError* eval_x_is_close_paren(Sft* self) {
       double* num = Stack_pop(number_cellar);
 
       if(!num) {
+        char* token_str = token_t_to_new_str(operator_token->type);
+
         sprintf(self->error.message,
                 "Invalid expression, missing '%s' for unary operator "
                 "'%s'\n\n",
                 "num",
-                Token_toString(operator_token));
+                token_str);
+
+        free(token_str);
 
         return &self->error;
       }
@@ -379,31 +410,6 @@ SftError* Sft_evalTokens(Sft* self, TokenArray* tokens, double* out_result) {
       Stack_pushFrom(self->number_stack, &token.f64);
     }
 
-    // If token is an operator, evaluate operators until either
-    // - Operator cellar is empty.
-    //
-    // - The top of the operator cellar is an open paren.
-    //
-    // - The precedence of the operator at the top of the operator
-    //   cellar is LOWER than the precedence of t.
-    else if(token.type & (TT_OPERATOR | TT_SY_COMA)) {
-      // The first time we encounter an operator, simply add it, no
-      // evaluation.
-
-      debug_step(drawer, "\n> Evaluate Stack\n");
-
-      SftError* error = eval_x_is_operator(self, token);
-
-      if(error) {
-        return error;
-      }
-
-      // Then place X in the cellar.
-      debug_step(drawer, "\n> Push Operator\n");
-      Stack_pushFrom(self->operator_stack, &token);
-
-    }
-
     // If X is an open parenthesis, push X onto the operator cellar.
     else if(token.type & TT_SY_LPAR) {
       debug_step(drawer, "\n> Push Operator\n");
@@ -422,6 +428,29 @@ SftError* Sft_evalTokens(Sft* self, TokenArray* tokens, double* out_result) {
         return error;
       }
     }
+
+    // If token is an operator, evaluate operators until either
+    // - Operator cellar is empty.
+    //
+    // - The top of the operator cellar is an open paren.
+    //
+    // - The precedence of the operator at the top of the operator
+    //   cellar is LOWER than the precedence of t.
+    else if(token.type & (TT_OPERATOR | TT_SY_COMA)) {
+      debug_step(drawer, "\n> Evaluate Stack\n");
+
+      SftError* error = eval_x_is_operator(self, token);
+
+      if(error) {
+        return error;
+      }
+
+      // Then place X in the cellar.
+      debug_step(drawer, "\n> Push Operator\n");
+      Stack_pushFrom(self->operator_stack, &token);
+
+    }
+
   }
 
   debug_step(drawer, "\n> Evaluate Stack\n");
@@ -443,11 +472,15 @@ SftError* Sft_evalTokens(Sft* self, TokenArray* tokens, double* out_result) {
       double* num1 = Stack_pop(self->number_stack);
 
       if(!num2 || !num1) {
+        char* token_str = token_t_to_new_str(operator_token->type);
+
         sprintf(self->error.message,
                 "Invalid expression, missing '%s' for binary operator "
                 "'%s'\n\n",
                 num1 ? "num2" : "num1",
-                Token_toString(operator_token));
+                token_str);
+
+        free(token_str);
 
         return &self->error;
       }
@@ -460,11 +493,15 @@ SftError* Sft_evalTokens(Sft* self, TokenArray* tokens, double* out_result) {
       double* num = Stack_pop(self->number_stack);
 
       if(!num) {
+        char* token_str = token_t_to_new_str(operator_token->type);
+
         sprintf(self->error.message,
                 "Invalid expression, missing '%s' for unary operator "
                 "'%s'\n\n",
                 "num",
-                Token_toString(operator_token));
+                token_str);
+
+        free(token_str);
 
         return &self->error;
       }

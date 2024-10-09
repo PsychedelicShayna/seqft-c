@@ -31,19 +31,6 @@
 //  we iterate through the expression, its value will be determined, and we
 //  must follow the rules.
 
-extern tokent_t TokenType_fromStr(const char* str);
-
-typedef struct Token {
-  tokent_t type;
-  double   f64;
-  char*    func;
-  char     str[256];
-} Token;
-
-extern char* Token_toString(Token* token);
-extern void  Token_print(Token* t);
-extern void  Token_freeMembers(Token* t);
-extern void  Token_free(Token* t);
 
 typedef enum {
   ACC_NIL = 0x00000000, // Undetermined
@@ -64,15 +51,6 @@ typedef enum {
 extern AccFlag assign_accflag(char character, bool allow_hex);
 extern AccFlag AccFlag_fromFormatChar(char character);
 
-typedef struct TokenArray {
-  Token* tokens;
-  size_t count;
-} TokenArray;
-
-extern TokenArray TokenArray_deepCopy(Token* tokens, size_t count);
-extern void       TokenArray_freeMembers(TokenArray* self);
-extern void       TokenArray_free(TokenArray* self);
-
 typedef struct Tokenizer {
   AccFlag  accflag;
   Stack*   char_stack;
@@ -80,18 +58,16 @@ typedef struct Tokenizer {
   IterErr* error;
 } Tokenizer;
 
-// Returns a newly allocated string representing the token. Caller responsible
-// for freeing char* returned from this function.
-extern char* TokenType_toString(tokent_t t);
 
 extern Tokenizer* Tokenizer_new(void);
 
-extern bool Tokenizer_tokenize(Tokenizer* t, const char* expression, size_t expr_len,
-                              TokenArray* out);
+extern bool Tokenizer_tokenize(Tokenizer* t, const char* expression,
+                              size_t expr_len, TokenArray* out);
 
 extern bool Tokenizer_parseStackAsNumber(Tokenizer* t, Token* out);
 
-extern void Tokenizer_error(Tokenizer* t, const char* message, size_t expr_index);
+extern void Tokenizer_error(Tokenizer* t, const char* message,
+                            size_t expr_index);
 
 extern void Tokenizer_clear(Tokenizer* t);
 extern void Tokenizer_addToken(Tokenizer* t, Token* token);

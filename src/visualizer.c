@@ -5,7 +5,6 @@
 void Sft_draw(Sft* sft) {
 #ifdef DEBUG
     system("clear");
-
     if(!sft || !sft->tarray)
         return;
     // Draw expression

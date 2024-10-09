@@ -145,6 +145,7 @@ void test_sft(const char* expr) {
         perror(error->message);
         abort();
     } else {
+        system("clear");
         printf("Result: %f\n", result);
     }
 
